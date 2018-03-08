@@ -1,0 +1,14 @@
+# Intermediate Build files
+/**/*.gch
+/**/*.map
+/**/*.obj
+/**/*.pch
+/**/*.tds
+
+/**/*.~*
+/**/*.#*
+
+# Output files
+/**/*.dll
+/**/*.lib
+/**/*.exe

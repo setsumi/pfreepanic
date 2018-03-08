@@ -1,0 +1,43 @@
+>>>>>>>>>>( Window Title & Class )<<<<<<<<<<<
+SOUND VOLTEX III GRAVITY WARS
+SOUND VOLTEX III GRAVITY WARS
+
+>>>>>>>>>>( Window Title & Class )<<<<<<<<<<<
+SOUND VOLTEX IV HEAVENLY HAVEN 1
+SOUND VOLTEX IV HEAVENLY HAVEN 1
+
+sdvx32 pfree
+off
+196BDF
+00
+
+196C66
+8B83780A00008D480183F90356577F52
+
+xp
+011A7866  8B 83 78 0A 00 00 8D 48 01 83 F9 03 56 57 7F 52  泣x...工・VWR
+(+0x1010C00)
+
+on
+196BDF
+02
+
+196C66
+B8010000008983780A00009056579090
+
+
+
+xp
+	Z:\games\SDVX32\soundvoltex.dll		 0x01010000		 0x0C48E000		 0x0122E91C
+=197866
+
+7
+10197866  8B 83 78 0A 00 00 8D 48 01 83 F9 03 56 57 7F 52  x...HEVWR
+
+	E:\SDVX32\contents\soundvoltex.dll		 0x10000000		 0x0C48E000		 0x1021E91C
+=197866
+file_offset + C00 + module_base
+
+プレミアムフリーモードに移行します。
+通常プレイモードに移行します。
+
