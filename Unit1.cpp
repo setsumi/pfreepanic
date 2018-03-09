@@ -60,15 +60,22 @@ UnicodeString WinFormatError(DWORD errNo)
 	return errMsg;
 }
 
-void WinError(UnicodeString msg)
-{
-	MessageBox(Form1->Handle, (msg + L"\n" + WinFormatError(GetLastError())).c_str(),
-			L"pfree panic", MB_OK|MB_ICONHAND);
-}
-
 void Error(UnicodeString msg)
 {
-	MessageBox(Form1->Handle, msg.c_str(), L"pfree panic", MB_OK|MB_ICONHAND);
+	Form1->Memo1->Color = clRed;
+	Form1->Memo1->Font->Color = clYellow;
+	Form1->Memo1->Font->Style = TFontStyles() << fsBold;
+
+	Form1->Memo1->Lines->Text = UnicodeString(L"ERROR:\n") + msg;
+
+	Form1->Memo1->SetFocus();
+	MessageBeep(MB_ICONHAND);
+//	MessageBox(Form1->Handle, msg.c_str(), L"pfree panic", MB_OK|MB_ICONHAND);
+}
+
+void WinError(UnicodeString msg)
+{
+	Error(msg + L"\n" + WinFormatError(GetLastError()));
 }
 
 //---------------------------------------------------------------------------
@@ -112,8 +119,7 @@ void TogglePFree()
 
 		hProc = OpenProcess(/*PROCESS_ALL_ACCESS*/
 				PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION |
-				PROCESS_QUERY_INFORMATION | PROCESS_QUERY_LIMITED_INFORMATION |
-				PROCESS_SET_INFORMATION, FALSE, procID);
+				PROCESS_QUERY_INFORMATION, FALSE, procID);
 	}
 	if (!hProc) {
 		WinError(L"Can not open process");
@@ -202,6 +208,7 @@ void TogglePFree()
 	}
 
 	txt.sprintf(L"%02X\n%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X", data0, data1[0],data1[1],data1[2],data1[3],data1[4],data1[5],data1[6],data1[7],data1[8],data1[9],data1[10],data1[11],data1[12],data1[13],data1[14],data1[15]);
+	Form1->MemoResetStyle();
 	Form1->Memo1->Lines->Text = txt;
 
 getout:
@@ -222,7 +229,11 @@ void TerminateGame()
 	HWND hWnd = NULL;
 	DWORD procID = NULL;
 
-	hWnd = FindWindow(Form1->cbbGame->Text.c_str(), NULL);
+	for (int i = 0; i < Form1->cbbGame->Items->Count; i++) {
+		hWnd = FindWindow(Form1->cbbGame->Items->Strings[i].c_str(), NULL);
+		if (hWnd) break;
+	}
+//	hWnd = FindWindow(Form1->cbbGame->Text.c_str(), NULL);
 	if (!hWnd) {
 		goto getout2;
 	}
@@ -328,6 +339,14 @@ void TForm1::Save()
 	ini->WriteInteger(L"GENERAL", L"TerminateHotkey", (int)TermKey);
 	ini->WriteInteger(L"GENERAL", L"SuspendProcess", SuspendProcess);
 	delete ini;
+}
+
+//---------------------------------------------------------------------------
+void TForm1::MemoResetStyle()
+{
+	Memo1->Color = clWindow;
+	Memo1->Font->Color = clWindowText;
+	Memo1->Font->Style = TFontStyles();
 }
 
 //---------------------------------------------------------------------------

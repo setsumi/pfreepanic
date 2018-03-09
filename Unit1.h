@@ -26,9 +26,10 @@ __published:	// IDE-managed Components
 	void __fastcall edtTermKeyEnter(TObject *Sender);
 	void __fastcall edtTermKeyExit(TObject *Sender);
 private:	// User declarations
-	void Load();
 public:		// User declarations
+	void Load();
 	void Save();
+	void MemoResetStyle();
 
 	__fastcall TForm1(TComponent* Owner);
 };

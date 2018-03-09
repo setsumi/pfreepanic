@@ -20,7 +20,7 @@ object Form1: TForm1
   object Label1: TLabel
     Left = 16
     Top = 52
-    Width = 193
+    Width = 163
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     Caption = 'PFree (Unlimited plays) toggle key'
@@ -28,7 +28,7 @@ object Form1: TForm1
   object Label2: TLabel
     Left = 16
     Top = 15
-    Width = 105
+    Width = 51
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Your game'
@@ -36,7 +36,7 @@ object Form1: TForm1
   object Label3: TLabel
     Left = 16
     Top = 80
-    Width = 193
+    Width = 97
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Terminate game key'
@@ -50,7 +50,6 @@ object Form1: TForm1
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
-    ExplicitHeight = 132
   end
   object cbbGame: TComboBox
     Left = 136
