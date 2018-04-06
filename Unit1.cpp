@@ -20,14 +20,13 @@ HHOOK hHook = NULL;
 bool Working = false;
 DWORD Key = 0;
 DWORD TermKey = 0;
-int Game = 0;
+int Game = -1;
 int SuspendProcess = 1;
+TStringList *pGamesList;
 
 #define MODULE_NAME L"soundvoltex.dll"
 #define MEM_OFFSET  0xC00 // offset padding relative to .dll file
 
-//#define DATA0_OFFSET 0x196BDF
-//#define DATA1_OFFSET 0x196C66
 ULONG data0_offset[] = { 0x1CAAFF, 0x196BDF };
 ULONG data1_offset[] = { 0x1CACC6, 0x196C66 };
 #define DATA1_SIZE 16
@@ -43,10 +42,6 @@ BYTE pf_on1[2][16] = {
 		{ 0xB8, 0x01, 0x00, 0x00, 0x00, 0x89, 0x83, 0x78, 0x0A, 0x00, 0x00, 0x90, 0x56, 0x57, 0x90, 0x90 }
 	};
 
-//BYTE pfree_off0   = 0x00;
-//BYTE pfree_off1[] = { 0x8B, 0x83, 0x78, 0x0A, 0x00, 0x00, 0x8D, 0x48, 0x01, 0x83, 0xF9, 0x03, 0x56, 0x57, 0x7F, 0x52 };
-//BYTE pfree_on0    = 0x02;
-//BYTE pfree_on1[]  = { 0xB8, 0x01, 0x00, 0x00, 0x00, 0x89, 0x83, 0x78, 0x0A, 0x00, 0x00, 0x90, 0x56, 0x57, 0x90, 0x90 };
 
 UnicodeString WinFormatError(DWORD errNo)
 {
@@ -70,12 +65,26 @@ void Error(UnicodeString msg)
 
 	Form1->Memo1->SetFocus();
 	MessageBeep(MB_ICONHAND);
-//	MessageBox(Form1->Handle, msg.c_str(), L"pfree panic", MB_OK|MB_ICONHAND);
 }
 
 void WinError(UnicodeString msg)
 {
 	Error(msg + L"\n" + WinFormatError(GetLastError()));
+}
+
+//---------------------------------------------------------------------------
+HWND FindGameWnd()
+{
+	HWND hWnd = NULL;
+	Game = -1;
+	for (int i = 0; i < pGamesList->Count; i++) {
+		hWnd = FindWindow(pGamesList->Strings[i].c_str(), NULL);
+		if (hWnd) {
+    	Game = i;
+			break;
+		}
+	}
+	return hWnd;
 }
 
 //---------------------------------------------------------------------------
@@ -97,7 +106,7 @@ void TogglePFree()
 	bool found = false;
 	ULONG baseAddr = 0;
 
-	hWnd = FindWindow(Form1->cbbGame->Text.c_str(), NULL);
+	hWnd = FindGameWnd();
 	if (!hWnd) {
 		Error(L"Game window not found");
 		goto getout;
@@ -229,11 +238,7 @@ void TerminateGame()
 	HWND hWnd = NULL;
 	DWORD procID = NULL;
 
-	for (int i = 0; i < Form1->cbbGame->Items->Count; i++) {
-		hWnd = FindWindow(Form1->cbbGame->Items->Strings[i].c_str(), NULL);
-		if (hWnd) break;
-	}
-//	hWnd = FindWindow(Form1->cbbGame->Text.c_str(), NULL);
+	hWnd = FindGameWnd();
 	if (!hWnd) {
 		goto getout2;
 	}
@@ -303,6 +308,10 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 __fastcall TForm1::TForm1(TComponent* Owner)
 	: TForm(Owner)
 {
+	pGamesList = new TStringList();
+	pGamesList->Add(L"SOUND VOLTEX IV HEAVENLY HAVEN 1");
+	pGamesList->Add(L"SOUND VOLTEX III GRAVITY WARS");
+
 	// load .ini
 	Load();
 	// set global keyboard hook to capture key press
@@ -314,6 +323,8 @@ void __fastcall TForm1::FormDestroy(TObject *Sender)
 {
 	if (hHook) UnhookWindowsHookEx(hHook);
 	Save();
+
+	delete pGamesList;
 }
 
 //---------------------------------------------------------------------------
@@ -322,8 +333,6 @@ void TForm1::Load()
 	TIniFile *ini = new TIniFile(ChangeFileExt(Application->ExeName, ".ini"));
 	Key = (DWORD)ini->ReadInteger(L"GENERAL", L"Hotkey", 106); // by default Numpad * key
 	edtKey->Text = IntToStr((int)Key);
-	Game = ini->ReadInteger(L"GENERAL", L"Game", 0);
-	cbbGame->ItemIndex = Game;
 	TermKey = (DWORD)ini->ReadInteger(L"GENERAL", L"TerminateHotkey", 109); // by default Numpad - key
 	edtTermKey->Text = IntToStr((int)TermKey);
 	SuspendProcess = ini->ReadInteger(L"GENERAL", L"SuspendProcess", 0);
@@ -335,7 +344,6 @@ void TForm1::Save()
 {
 	TIniFile *ini = new TIniFile(ChangeFileExt(Application->ExeName, ".ini"));
 	ini->WriteInteger(L"GENERAL", L"Hotkey", (int)Key);
-	ini->WriteInteger(L"GENERAL", L"Game", Game);
 	ini->WriteInteger(L"GENERAL", L"TerminateHotkey", (int)TermKey);
 	ini->WriteInteger(L"GENERAL", L"SuspendProcess", SuspendProcess);
 	delete ini;
@@ -375,18 +383,3 @@ void __fastcall TForm1::edtTermKeyExit(TObject *Sender)
 }
 
 //---------------------------------------------------------------------------
-void __fastcall TForm1::cbbGameChange(TObject *Sender)
-{
-	Game = cbbGame->ItemIndex;
-	Save();
-}
-
-//---------------------------------------------------------------------------
-void __fastcall TForm1::cbbGameKeyPress(TObject *Sender, wchar_t &Key)
-{
-	if (Key != VK_LEFT && Key != VK_UP && Key != VK_RIGHT && Key != VK_DOWN) {
-		Key = 0;
-	}
-}
-
-
