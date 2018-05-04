@@ -14,16 +14,15 @@ __published:	// IDE-managed Components
 	TMemo *Memo1;
 	TEdit *edtKey;
 	TLabel *Label1;
-	TLabel *Label2;
 	TLabel *Label3;
 	TEdit *edtTermKey;
-	TLabel *Label4;
-	TLabel *Label5;
+	TButton *btnInfo;
 	void __fastcall FormDestroy(TObject *Sender);
 	void __fastcall edtKeyEnter(TObject *Sender);
 	void __fastcall edtKeyExit(TObject *Sender);
 	void __fastcall edtTermKeyEnter(TObject *Sender);
 	void __fastcall edtTermKeyExit(TObject *Sender);
+	void __fastcall btnInfoClick(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
 	void Load();

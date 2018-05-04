@@ -16,6 +16,16 @@
 #pragma resource "*.dfm"
 TForm1 *Form1;
 
+struct TermWnd {
+	UnicodeString wndtitle;
+	UnicodeString wndclass;
+
+	TermWnd(UnicodeString ttl, UnicodeString cls) {
+		wndtitle = ttl;
+		wndclass = cls;
+  }
+};
+
 HHOOK hHook = NULL;
 bool Working = false;
 DWORD Key = 0;
@@ -23,6 +33,7 @@ DWORD TermKey = 0;
 int Game = -1;
 int SuspendProcess = 1;
 TStringList *pGamesList;
+TList *pTermList;
 
 #define MODULE_NAME L"soundvoltex.dll"
 #define MEM_OFFSET  0xC00 // offset padding relative to .dll file
@@ -81,6 +92,20 @@ HWND FindGameWnd()
 		hWnd = FindWindow(pGamesList->Strings[i].c_str(), NULL);
 		if (hWnd) {
     	Game = i;
+			break;
+		}
+	}
+	return hWnd;
+}
+
+//---------------------------------------------------------------------------
+HWND FindTermWnd()
+{
+	HWND hWnd = NULL;
+	for (int i = 0; i < pTermList->Count; i++) {
+		TermWnd *pwi = (TermWnd*)pTermList->Items[i];
+		hWnd = FindWindow(pwi->wndclass.c_str(), pwi->wndtitle.c_str());
+		if (hWnd) {
 			break;
 		}
 	}
@@ -238,7 +263,7 @@ void TerminateGame()
 	HWND hWnd = NULL;
 	DWORD procID = NULL;
 
-	hWnd = FindGameWnd();
+	hWnd = FindTermWnd();
 	if (!hWnd) {
 		goto getout2;
 	}
@@ -312,6 +337,15 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 	pGamesList->Add(L"SOUND VOLTEX IV HEAVENLY HAVEN 1");
 	pGamesList->Add(L"SOUND VOLTEX III GRAVITY WARS");
 
+	pTermList = new TList();
+	pTermList->Add(new TermWnd(L"SOUND VOLTEX IV HEAVENLY HAVEN 1", L"SOUND VOLTEX IV HEAVENLY HAVEN 1"));
+	pTermList->Add(new TermWnd(L"SOUND VOLTEX III GRAVITY WARS", L"SOUND VOLTEX III GRAVITY WARS"));
+	pTermList->Add(new TermWnd(L"beatmania IIDX 24 SINOBUZ", L"beatmania IIDX 24 SINOBUZ"));
+	pTermList->Add(new TermWnd(L"pop'n music eclale", L"pop'n music eclale"));
+	pTermList->Add(new TermWnd(L"MUSECA", L"MUSECA"));
+	pTermList->Add(new TermWnd(L"BeatStream", L"BeatStream"));
+	pTermList->Add(new TermWnd(L"", L"_")); // GITADORA Tri-Boost Re:EVOLVE
+
 	// load .ini
 	Load();
 	// set global keyboard hook to capture key press
@@ -325,6 +359,7 @@ void __fastcall TForm1::FormDestroy(TObject *Sender)
 	Save();
 
 	delete pGamesList;
+	delete pTermList;
 }
 
 //---------------------------------------------------------------------------
@@ -383,3 +418,20 @@ void __fastcall TForm1::edtTermKeyExit(TObject *Sender)
 }
 
 //---------------------------------------------------------------------------
+void __fastcall TForm1::btnInfoClick(TObject *Sender)
+{
+	ShowMessage(L"PFree mode is supported on:\n"
+		"\tSOUND VOLTEX IV HEAVENLY HAVEN 1 (2017112800)\n"
+		"\tSOUND VOLTEX III GRAVITY WARS (2016121200)\n\n"
+		"Terminate game is supported on:\n"
+		"\tSOUND VOLTEX IV HEAVENLY HAVEN 1\n"
+		"\tSOUND VOLTEX III GRAVITY WARS\n"
+		"\tbeatmania IIDX 24 SINOBUZ\n"
+		"\tpop'n music eclale\n"
+		"\tMUSECA\n"
+		"\tBeatStream\n"
+		"\tGITADORA Tri-Boost Re:EVOLVE"
+		);
+}
+//---------------------------------------------------------------------------
+
