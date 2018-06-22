@@ -38,8 +38,8 @@ TList *pTermList;
 #define MODULE_NAME L"soundvoltex.dll"
 #define MEM_OFFSET  0xC00 // offset padding relative to .dll file
 
-ULONG data0_offset[] = { 0x1CAAFF, 0x196BDF };
-ULONG data1_offset[] = { 0x1CACC6, 0x196C66 };
+ULONG data0_offset[] = { 0x1CEE4F, 0x196BDF };
+ULONG data1_offset[] = { 0x1CF016, 0x196C66 };
 #define DATA1_SIZE 16
 
 BYTE pf_off0[] = { 0x00, 0x00 };
@@ -421,7 +421,7 @@ void __fastcall TForm1::edtTermKeyExit(TObject *Sender)
 void __fastcall TForm1::btnInfoClick(TObject *Sender)
 {
 	ShowMessage(L"PFree mode is supported on:\n"
-		"\tSOUND VOLTEX IV HEAVENLY HAVEN 1 (2017112800)\n"
+		"\tSOUND VOLTEX IV HEAVENLY HAVEN 1 (2018011602 better continue)\n"
 		"\tSOUND VOLTEX III GRAVITY WARS (2016121200)\n\n"
 		"Terminate game is supported on:\n"
 		"\tSOUND VOLTEX IV HEAVENLY HAVEN 1\n"
