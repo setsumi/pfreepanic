@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'pfree panic'
-  ClientHeight = 162
+  ClientHeight = 211
   ClientWidth = 391
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -14,7 +14,7 @@ object Form1: TForm1
   OnDestroy = FormDestroy
   DesignSize = (
     391
-    162)
+    211)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -35,9 +35,9 @@ object Form1: TForm1
   end
   object Memo1: TMemo
     Left = 8
-    Top = 96
+    Top = 138
     Width = 375
-    Height = 58
+    Height = 65
     Anchors = [akLeft, akTop, akRight, akBottom]
     ReadOnly = True
     ScrollBars = ssVertical
@@ -50,7 +50,7 @@ object Form1: TForm1
     Height = 21
     Anchors = [akTop, akRight]
     ReadOnly = True
-    TabOrder = 1
+    TabOrder = 2
     Text = 'Press single key'
     OnEnter = edtKeyEnter
     OnExit = edtKeyExit
@@ -62,7 +62,7 @@ object Form1: TForm1
     Height = 21
     Anchors = [akTop, akRight]
     ReadOnly = True
-    TabOrder = 2
+    TabOrder = 3
     Text = 'Press single key'
     OnEnter = edtTermKeyEnter
     OnExit = edtTermKeyExit
@@ -73,7 +73,19 @@ object Form1: TForm1
     Width = 94
     Height = 25
     Caption = 'Information...'
-    TabOrder = 3
+    TabOrder = 1
     OnClick = btnInfoClick
+  end
+  object rdgVoice: TRadioGroup
+    Left = 16
+    Top = 91
+    Width = 163
+    Height = 41
+    Caption = 'Notification voice'
+    Columns = 2
+    Items.Strings = (
+      'English'
+      'Japanese')
+    TabOrder = 4
   end
 end

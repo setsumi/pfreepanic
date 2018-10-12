@@ -217,7 +217,7 @@ void TogglePFree()
 			goto getout;
 		}
 		// notify
-		PlaySound((ExtractFilePath(Application->ExeName) + L"on.wav").c_str(), NULL, SND_FILENAME|SND_ASYNC);
+		PlaySound((ExtractFilePath(Application->ExeName) + (Form1->rdgVoice->ItemIndex == 0 ? L"on-eng.wav" : L"on.wav")).c_str(), NULL, SND_FILENAME|SND_ASYNC);
 		Form1->Caption = L"PFREE";
 	} else
 	// ON test
@@ -233,7 +233,7 @@ void TogglePFree()
 			goto getout;
 		}
 		// notify
-		PlaySound((ExtractFilePath(Application->ExeName) + L"off.wav").c_str(), NULL, SND_FILENAME|SND_ASYNC);
+		PlaySound((ExtractFilePath(Application->ExeName) + (Form1->rdgVoice->ItemIndex == 0 ? L"off-eng.wav" : L"off.wav")).c_str(), NULL, SND_FILENAME|SND_ASYNC);
 		Form1->Caption = L"NORMAL";
 	} else
 	{
@@ -371,6 +371,7 @@ void TForm1::Load()
 	TermKey = (DWORD)ini->ReadInteger(L"GENERAL", L"TerminateHotkey", 109); // by default Numpad - key
 	edtTermKey->Text = IntToStr((int)TermKey);
 	SuspendProcess = ini->ReadInteger(L"GENERAL", L"SuspendProcess", 0);
+	rdgVoice->ItemIndex = ini->ReadInteger(L"GENERAL", L"NotifyVoice", 0);
 	delete ini;
 }
 
@@ -381,6 +382,7 @@ void TForm1::Save()
 	ini->WriteInteger(L"GENERAL", L"Hotkey", (int)Key);
 	ini->WriteInteger(L"GENERAL", L"TerminateHotkey", (int)TermKey);
 	ini->WriteInteger(L"GENERAL", L"SuspendProcess", SuspendProcess);
+	ini->WriteInteger(L"GENERAL", L"NotifyVoice", rdgVoice->ItemIndex);
 	delete ini;
 }
 
@@ -430,7 +432,8 @@ void __fastcall TForm1::btnInfoClick(TObject *Sender)
 		"\tpop'n music eclale\n"
 		"\tMUSECA\n"
 		"\tBeatStream\n"
-		"\tGITADORA Tri-Boost Re:EVOLVE"
+		"\tGITADORA Tri-Boost Re:EVOLVE\n"
+		"\tGITADORA Matixx"
 		);
 }
 //---------------------------------------------------------------------------

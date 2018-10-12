@@ -7,6 +7,7 @@
 #include <Controls.hpp>
 #include <StdCtrls.hpp>
 #include <Forms.hpp>
+#include <ExtCtrls.hpp>
 //---------------------------------------------------------------------------
 class TForm1 : public TForm
 {
@@ -17,6 +18,7 @@ __published:	// IDE-managed Components
 	TLabel *Label3;
 	TEdit *edtTermKey;
 	TButton *btnInfo;
+	TRadioGroup *rdgVoice;
 	void __fastcall FormDestroy(TObject *Sender);
 	void __fastcall edtKeyEnter(TObject *Sender);
 	void __fastcall edtKeyExit(TObject *Sender);
