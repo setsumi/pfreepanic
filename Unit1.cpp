@@ -43,12 +43,12 @@ ULONG data1_offset[] = { 0x1CF016, 0x196C66 };
 #define DATA1_SIZE 16
 
 BYTE pf_off0[] = { 0x00, 0x00 };
-BYTE pf_off1[2][16] = {
+BYTE pf_off1[2][DATA1_SIZE] = {
 		{ 0x8B, 0x83, 0x64, 0x10, 0x00, 0x00, 0x8D, 0x48, 0x01, 0x83, 0xF9, 0x04, 0x56, 0x57, 0x7F, 0x52 },
 		{ 0x8B, 0x83, 0x78, 0x0A, 0x00, 0x00, 0x8D, 0x48, 0x01, 0x83, 0xF9, 0x03, 0x56, 0x57, 0x7F, 0x52 }
 	};
 BYTE pf_on0[] = { 0x02, 0x02 };
-BYTE pf_on1[2][16] = {
+BYTE pf_on1[2][DATA1_SIZE] = {
 		{ 0xB8, 0x01, 0x00, 0x00, 0x00, 0x89, 0x83, 0x64, 0x10, 0x00, 0x00, 0x90, 0x56, 0x57, 0x90, 0x90 },
 		{ 0xB8, 0x01, 0x00, 0x00, 0x00, 0x89, 0x83, 0x78, 0x0A, 0x00, 0x00, 0x90, 0x56, 0x57, 0x90, 0x90 }
 	};
@@ -124,12 +124,12 @@ void TogglePFree()
 	DWORD procID = NULL;
 
 	BYTE data0 = 1;
-	BYTE data1[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+	BYTE data1[DATA1_SIZE];
 
 	HMODULE hMods[1024];
 	DWORD cbNeeded;
 	bool found = false;
-	ULONG baseAddr = 0;
+	LPVOID baseAddr = 0;
 
 	hWnd = FindGameWnd();
 	if (!hWnd) {
@@ -182,7 +182,7 @@ void TogglePFree()
 			UnicodeString name(szModName);
 			if (name.Pos(MODULE_NAME) > 0) {
 				found = true;
-				baseAddr = (ULONG)info.lpBaseOfDll;
+				baseAddr = info.lpBaseOfDll;
 				break;
 			}
 //			line.sprintf(L"\t%s\t\t 0x%08X\t\t 0x%08X\t\t 0x%08X", szModName, info.lpBaseOfDll, info.SizeOfImage, info.EntryPoint);
@@ -237,7 +237,7 @@ void TogglePFree()
 		Form1->Caption = L"NORMAL";
 	} else
 	{
-		Error(L"Invalid game data");
+		Error(L"Invalid game data. Press [Information...] for supported game version.");
 		goto getout;
 	}
 
@@ -340,11 +340,12 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 	pTermList = new TList();
 	pTermList->Add(new TermWnd(L"SOUND VOLTEX IV HEAVENLY HAVEN 1", L"SOUND VOLTEX IV HEAVENLY HAVEN 1"));
 	pTermList->Add(new TermWnd(L"SOUND VOLTEX III GRAVITY WARS", L"SOUND VOLTEX III GRAVITY WARS"));
+	pTermList->Add(new TermWnd(L"SOUND VOLTEX II -infinite infection-", L"SOUND VOLTEX II -infinite infection-"));
 	pTermList->Add(new TermWnd(L"beatmania IIDX 24 SINOBUZ", L"beatmania IIDX 24 SINOBUZ"));
 	pTermList->Add(new TermWnd(L"pop'n music eclale", L"pop'n music eclale"));
 	pTermList->Add(new TermWnd(L"MUSECA", L"MUSECA"));
 	pTermList->Add(new TermWnd(L"BeatStream", L"BeatStream"));
-	pTermList->Add(new TermWnd(L"", L"_")); // GITADORA Tri-Boost Re:EVOLVE
+	pTermList->Add(new TermWnd(L"", L"_")); // GITADORA Tri-Boost Re:EVOLVE / Matixx
 
 	// load .ini
 	Load();
@@ -422,12 +423,20 @@ void __fastcall TForm1::edtTermKeyExit(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnInfoClick(TObject *Sender)
 {
-	ShowMessage(L"PFree mode is supported on:\n"
+	ShowMessage(L"How to use:\n"
+		"\t1. Run the app\n"
+		"\t2. Assign keys by clicking the corresponding edit box\n"
+		"\t3. Start the game while keeping app running in the background\n"
+		"\t4. To change mode press assigned key\n"
+		"\t    (usually while in song selection screen or pre-song lobby)\n"
+		"\t5. PROFIT\n"
+		"\nPFree mode is supported on:\n"
 		"\tSOUND VOLTEX IV HEAVENLY HAVEN 1 (2018011602 better continue)\n"
-		"\tSOUND VOLTEX III GRAVITY WARS (2016121200)\n\n"
-		"Terminate game is supported on:\n"
+		"\tSOUND VOLTEX III GRAVITY WARS (2016121200)\n"
+		"\nTerminate game is supported on:\n"
 		"\tSOUND VOLTEX IV HEAVENLY HAVEN 1\n"
 		"\tSOUND VOLTEX III GRAVITY WARS\n"
+		"\tSOUND VOLTEX II -infinite infection-\n"
 		"\tbeatmania IIDX 24 SINOBUZ\n"
 		"\tpop'n music eclale\n"
 		"\tMUSECA\n"
