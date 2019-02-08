@@ -8,6 +8,8 @@
 #include <StdCtrls.hpp>
 #include <Forms.hpp>
 #include <ExtCtrls.hpp>
+#include <ComCtrls.hpp>
+
 //---------------------------------------------------------------------------
 class TForm1 : public TForm
 {
@@ -18,13 +20,25 @@ __published:	// IDE-managed Components
 	TLabel *Label3;
 	TEdit *edtTermKey;
 	TButton *btnInfo;
-	TRadioGroup *rdgVoice;
+	TGroupBox *GroupBox1;
+	TButton *btnOSDTest;
+	TButton *btnOSDHelp;
+	TCheckBox *chkOSDEnabled;
+	TLabel *Label2;
+	TEdit *edtOSDDuration;
+	TUpDown *udOSDDuration;
+	TGroupBox *GroupBox2;
+	TCheckBox *chkVoiceEnabled;
+	TRadioButton *rbVoiceEnglish;
+	TRadioButton *rbVoiceJapanese;
 	void __fastcall FormDestroy(TObject *Sender);
 	void __fastcall edtKeyEnter(TObject *Sender);
 	void __fastcall edtKeyExit(TObject *Sender);
 	void __fastcall edtTermKeyEnter(TObject *Sender);
 	void __fastcall edtTermKeyExit(TObject *Sender);
 	void __fastcall btnInfoClick(TObject *Sender);
+	void __fastcall btnOSDTestClick(TObject *Sender);
+	void __fastcall btnOSDHelpClick(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
 	void Load();

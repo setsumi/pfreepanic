@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'pfree panic'
-  ClientHeight = 211
+  ClientHeight = 285
   ClientWidth = 391
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -14,41 +14,38 @@ object Form1: TForm1
   OnDestroy = FormDestroy
   DesignSize = (
     391
-    211)
+    285)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
     Left = 16
     Top = 40
-    Width = 163
+    Width = 167
     Height = 13
-    Anchors = [akLeft, akTop, akRight]
-    Caption = 'PFree (Unlimited plays) toggle key'
+    Caption = 'PFree (Unlimited plays) toggle key:'
   end
   object Label3: TLabel
     Left = 16
-    Top = 68
-    Width = 97
+    Top = 67
+    Width = 101
     Height = 13
-    Anchors = [akLeft, akTop, akRight]
-    Caption = 'Terminate game key'
+    Caption = 'Terminate game key:'
   end
   object Memo1: TMemo
     Left = 8
-    Top = 138
+    Top = 175
     Width = 375
-    Height = 65
+    Height = 102
     Anchors = [akLeft, akTop, akRight, akBottom]
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
   end
   object edtKey: TEdit
-    Left = 279
+    Left = 201
     Top = 37
     Width = 101
     Height = 21
-    Anchors = [akTop, akRight]
     ReadOnly = True
     TabOrder = 2
     Text = 'Press single key'
@@ -56,11 +53,10 @@ object Form1: TForm1
     OnExit = edtKeyExit
   end
   object edtTermKey: TEdit
-    Left = 279
+    Left = 201
     Top = 64
     Width = 101
     Height = 21
-    Anchors = [akTop, akRight]
     ReadOnly = True
     TabOrder = 3
     Text = 'Press single key'
@@ -76,16 +72,106 @@ object Form1: TForm1
     TabOrder = 1
     OnClick = btnInfoClick
   end
-  object rdgVoice: TRadioGroup
-    Left = 16
+  object GroupBox1: TGroupBox
+    Left = 201
     Top = 91
-    Width = 163
-    Height = 41
-    Caption = 'Notification voice'
-    Columns = 2
-    Items.Strings = (
-      'English'
-      'Japanese')
+    Width = 179
+    Height = 78
+    Caption = 'OSD'
     TabOrder = 4
+    object Label2: TLabel
+      Left = 24
+      Top = 48
+      Width = 53
+      Height = 13
+      Caption = 'Duration:'
+    end
+    object btnOSDTest: TButton
+      Left = 120
+      Top = 16
+      Width = 47
+      Height = 25
+      Caption = 'Test'
+      TabOrder = 0
+      OnClick = btnOSDTestClick
+    end
+    object btnOSDHelp: TButton
+      Left = 88
+      Top = 16
+      Width = 26
+      Height = 25
+      Caption = '?'
+      TabOrder = 1
+      OnClick = btnOSDHelpClick
+    end
+    object chkOSDEnabled: TCheckBox
+      Left = 8
+      Top = 20
+      Width = 74
+      Height = 17
+      Caption = 'Enabled'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      TabOrder = 2
+    end
+    object edtOSDDuration: TEdit
+      Left = 87
+      Top = 47
+      Width = 54
+      Height = 21
+      TabOrder = 3
+      Text = '0'
+    end
+    object udOSDDuration: TUpDown
+      Left = 141
+      Top = 47
+      Width = 16
+      Height = 21
+      Associate = edtOSDDuration
+      Max = 32000
+      TabOrder = 4
+    end
+  end
+  object GroupBox2: TGroupBox
+    Left = 8
+    Top = 91
+    Width = 175
+    Height = 78
+    Caption = 'Notification voice'
+    TabOrder = 5
+    object chkVoiceEnabled: TCheckBox
+      Left = 8
+      Top = 20
+      Width = 74
+      Height = 17
+      Caption = 'Enabled'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      TabOrder = 0
+    end
+    object rbVoiceEnglish: TRadioButton
+      Left = 8
+      Top = 48
+      Width = 61
+      Height = 17
+      Caption = 'English'
+      TabOrder = 1
+    end
+    object rbVoiceJapanese: TRadioButton
+      Left = 84
+      Top = 48
+      Width = 71
+      Height = 17
+      Caption = 'Japanese'
+      TabOrder = 2
+    end
   end
 end

@@ -11,6 +11,8 @@
 #pragma hdrstop
 
 #include "Unit1.h"
+#include "osd.h"
+
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
@@ -23,17 +25,21 @@ struct TermWnd {
 	TermWnd(UnicodeString ttl, UnicodeString cls) {
 		wndtitle = ttl;
 		wndclass = cls;
-  }
+	}
 };
 
 HHOOK hHook = NULL;
 bool Working = false;
+bool Terminating = false;
 DWORD Key = 0;
 DWORD TermKey = 0;
 int Game = -1;
 int SuspendProcess = 1;
 TStringList *pGamesList;
 TList *pTermList;
+
+tOSD *pOSD;
+
 
 #define MODULE_NAME L"soundvoltex.dll"
 #define MEM_OFFSET  0xC00 // offset padding relative to .dll file
@@ -217,8 +223,11 @@ void TogglePFree()
 			goto getout;
 		}
 		// notify
-		PlaySound((ExtractFilePath(Application->ExeName) + (Form1->rdgVoice->ItemIndex == 0 ? L"on-eng.wav" : L"on.wav")).c_str(), NULL, SND_FILENAME|SND_ASYNC);
 		Form1->Caption = L"PFREE";
+		if (Form1->chkVoiceEnabled->Checked)
+			PlaySound((ExtractFilePath(Application->ExeName) + (Form1->rbVoiceEnglish->Checked? L"on-eng.wav" : L"on.wav")).c_str(), NULL, SND_FILENAME|SND_ASYNC);
+		if (Form1->chkOSDEnabled->Checked)
+			pOSD->SendMessage(L"Premium Free Mode", Form1->udOSDDuration->Position);
 	} else
 	// ON test
 	if (data0 == pf_on0[Game] && memcmp(data1, pf_on1[Game], DATA1_SIZE) == 0)
@@ -233,8 +242,11 @@ void TogglePFree()
 			goto getout;
 		}
 		// notify
-		PlaySound((ExtractFilePath(Application->ExeName) + (Form1->rdgVoice->ItemIndex == 0 ? L"off-eng.wav" : L"off.wav")).c_str(), NULL, SND_FILENAME|SND_ASYNC);
 		Form1->Caption = L"NORMAL";
+		if (Form1->chkVoiceEnabled->Checked)
+			PlaySound((ExtractFilePath(Application->ExeName) + (Form1->rbVoiceEnglish->Checked? L"off-eng.wav" : L"off.wav")).c_str(), NULL, SND_FILENAME|SND_ASYNC);
+		if (Form1->chkOSDEnabled->Checked)
+			pOSD->SendMessage(L"Credit Mode", Form1->udOSDDuration->Position);
 	} else
 	{
 		Error(L"Invalid game data. Press [Information...] for supported game version.");
@@ -259,6 +271,8 @@ getout:
 //---------------------------------------------------------------------------
 void TerminateGame()
 {
+	Terminating = true;
+
 	HANDLE hProc = NULL;
 	HWND hWnd = NULL;
 	DWORD procID = NULL;
@@ -268,27 +282,32 @@ void TerminateGame()
 		goto getout2;
 	}
 
+	// get process ID
 	if (!GetWindowThreadProcessId(hWnd, &procID)) {
 		WinError(L"Get window process ID failed");
 		goto getout2;
 	}
 
-	if (procID)
-		hProc = OpenProcess(PROCESS_TERMINATE, FALSE, procID);
-	if (!hProc) {
-		WinError(L"Can not open process");
+	// soft close window first
+	SendNotifyMessage(hWnd, WM_CLOSE, 0, 0);
+	Sleep(300);
+
+	// hard terminate process
+	hProc = OpenProcess(PROCESS_TERMINATE, FALSE, procID);
+	if (!hProc) { // already closed or some error, whatever
 		goto getout2;
 	}
 
 	if (!TerminateProcess(hProc, 0)) {
-		WinError(L"Can not terminate process");
-		goto getout2;
+		WinError(L"Could not terminate process");
 	}
 
 getout2:
 	// cleanup
 	if (hWnd)  CloseHandle(hWnd);
 	if (hProc) CloseHandle(hProc);
+
+	Terminating = false;
 }
 
 //---------------------------------------------------------------------------
@@ -317,7 +336,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 				Form1->Memo1->SetFocus();
 				TogglePFree();
 			} else
-			if (kbdStruct.vkCode == TermKey)
+			if (kbdStruct.vkCode == TermKey && !Terminating)
 			{
 				Form1->Memo1->SetFocus();
 				TerminateGame();
@@ -351,6 +370,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 	Load();
 	// set global keyboard hook to capture key press
 	hHook = SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)KeyboardProc, GetModuleHandle(NULL), 0);
+
+	pOSD = new tOSD();
 }
 
 //---------------------------------------------------------------------------
@@ -361,6 +382,8 @@ void __fastcall TForm1::FormDestroy(TObject *Sender)
 
 	delete pGamesList;
 	delete pTermList;
+
+	delete pOSD;
 }
 
 //---------------------------------------------------------------------------
@@ -372,7 +395,13 @@ void TForm1::Load()
 	TermKey = (DWORD)ini->ReadInteger(L"GENERAL", L"TerminateHotkey", 109); // by default Numpad - key
 	edtTermKey->Text = IntToStr((int)TermKey);
 	SuspendProcess = ini->ReadInteger(L"GENERAL", L"SuspendProcess", 0);
-	rdgVoice->ItemIndex = ini->ReadInteger(L"GENERAL", L"NotifyVoice", 0);
+	if (1 == ini->ReadInteger(L"GENERAL", L"VoiceEnglish", 1))
+		rbVoiceEnglish->Checked = true;
+	else
+  	rbVoiceJapanese->Checked = true;
+	chkVoiceEnabled->Checked = (1 == ini->ReadInteger(L"GENERAL", L"VoiceEnabled", 1));
+	udOSDDuration->Position = ini->ReadInteger(L"GENERAL", L"OSDDuration", 120);
+	chkOSDEnabled->Checked = ini->ReadInteger(L"GENERAL", L"OSDEnabled", 0) == 1;
 	delete ini;
 }
 
@@ -383,7 +412,10 @@ void TForm1::Save()
 	ini->WriteInteger(L"GENERAL", L"Hotkey", (int)Key);
 	ini->WriteInteger(L"GENERAL", L"TerminateHotkey", (int)TermKey);
 	ini->WriteInteger(L"GENERAL", L"SuspendProcess", SuspendProcess);
-	ini->WriteInteger(L"GENERAL", L"NotifyVoice", rdgVoice->ItemIndex);
+	ini->WriteInteger(L"GENERAL", L"VoiceEnglish", rbVoiceEnglish->Checked?1:0);
+	ini->WriteInteger(L"GENERAL", L"VoiceEnabled", chkVoiceEnabled->Checked?1:0);
+	ini->WriteInteger(L"GENERAL", L"OSDDuration", udOSDDuration->Position);
+	ini->WriteInteger(L"GENERAL", L"OSDEnabled", chkOSDEnabled->Checked?1:0);
 	delete ini;
 }
 
@@ -445,5 +477,28 @@ void __fastcall TForm1::btnInfoClick(TObject *Sender)
 		"\tGITADORA Matixx"
 		);
 }
+
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnOSDTestClick(TObject *Sender)
+{
+	if (!pOSD->SendMessage(L"Test Message", udOSDDuration->Position)) {
+		Error(L"Unable to send message. Press [?] for instructions.");
+	}
+}
+
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnOSDHelpClick(TObject *Sender)
+{
+	ShowMessage(L"How to use OSD:\n"
+		"\t1. Place dx9osd.dll in the game folder\n"
+		"\t2. Add it to command line with -k option\n"
+		"\t    (e.g. @launcher.exe -k sdvxhook.dll -k dx9osd.dll soundvoltex.dll)\n"
+		"\t3. Run the game\n"
+		"\t4. Press [Test] button\n"
+		"\t5. Test message should appear in game\n"
+		"\nOSD message duration is in frames (e.g. 60 for 1 second)"
+		);
+}
+
 //---------------------------------------------------------------------------
 
