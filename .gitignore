@@ -1,6 +1,9 @@
 # Build dirs
 /Debug
 /Release
+/*.local
+/*.stat
+/*.dsk
 
 # Intermediate Build files
 /**/*.gch
@@ -15,4 +18,4 @@
 # Output files
 #/**/*.dll
 #/**/*.lib
-#/**/*.exe
+/**/*.exe

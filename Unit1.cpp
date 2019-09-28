@@ -14,6 +14,7 @@
 #include "Unit1.h"
 #include "osd.h"
 #include "Utils.h"
+#include "volume.h"
 
 #ifdef _WIN64
 #pragma comment(lib, "Psapi.a")
@@ -68,9 +69,16 @@ void WinError(UnicodeString msg);
 HHOOK hHook = NULL;
 bool Working = false;
 bool Terminating = false;
+bool Voluming = false;
+
 DWORD Key = 0;
 DWORD TermKey = 0;
 DWORD ScreenshotKey = 0;
+DWORD VolumeUpKey = 0;
+DWORD VolumeDownKey = 0;
+DWORD ToggleMuteKey = 0;
+int VolumeIncrement = 2;
+
 std::list<Game> g_games;
 TList *pTermList;
 tOSD *pOSD;
@@ -311,7 +319,7 @@ void Toggle()
 							goto exit_Toggle;
 						}
 						UnicodeString str;
-						str.sprintf(L"%X: %s", hex.offset, BinToHexW(&(*hexdata).front(), (*hexdata).size()));
+						str.sprintf(L"%X: %s", hex.offset, BinToHexW(&(*hexdata).front(), (*hexdata).size()).w_str());
 						Print(str);
 					}
 					// Write success, show notification
@@ -472,8 +480,8 @@ HWND FindTermWnd()
 //---------------------------------------------------------------------------
 void Terminate()
 {
-	HANDLE hProc = NULL;
-	HWND hWnd = NULL;
+	HANDLE hProc;
+	HWND hWnd;
 	DWORD procID = 0;
 
 	hWnd = FindTermWnd();
@@ -489,7 +497,7 @@ void Terminate()
 
 	// soft close window first
 	SendNotifyMessage(hWnd, WM_CLOSE, 0, 0);
-	Sleep(300);
+	Sleep(500);
 
 	// hard terminate process
 	hProc = OpenProcess(PROCESS_TERMINATE, FALSE, procID);
@@ -497,9 +505,7 @@ void Terminate()
 		goto exit_Terminate;
 	}
 
-	if (!TerminateProcess(hProc, 0)) {
-		WinError(L"Could not terminate process");
-	}
+	TerminateProcess(hProc, 0);
 
 exit_Terminate:
 	if (hProc) CloseHandle(hProc);
@@ -531,6 +537,21 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 				Form1->Memo1->SetFocus();
 				Form1->Save();
 			} else
+			if (Form1->edtVolumeUpKey->Tag) {
+				VolumeUpKey = kbdStruct.vkCode;
+				Form1->Memo1->SetFocus();
+				Form1->Save();
+			} else
+			if (Form1->edtVolumeDownKey->Tag) {
+				VolumeDownKey = kbdStruct.vkCode;
+				Form1->Memo1->SetFocus();
+				Form1->Save();
+			} else
+			if (Form1->edtToggleMuteKey->Tag) {
+				ToggleMuteKey = kbdStruct.vkCode;
+				Form1->Memo1->SetFocus();
+				Form1->Save();
+			} else
 			if (kbdStruct.vkCode == Key && !Working) // Toggle PFree
 			{
 				Working = true;
@@ -549,7 +570,36 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 			{
 				Form1->Memo1->SetFocus();
 				if (Form1->edtSSNpath->Text.Length())
-	        pOSD->SendMessage(Form1->edtSSNpath->Text, 1);
+					pOSD->SendMessage(Form1->edtSSNpath->Text, 1);
+			} else
+			if ((kbdStruct.vkCode == VolumeUpKey || kbdStruct.vkCode == VolumeDownKey) && !Voluming) // Volume Up/Down
+			{
+				Voluming = true;
+				Form1->Memo1->SetFocus();
+				try {
+					double volume = ChangeVolume((kbdStruct.vkCode == VolumeUpKey)? 0.01*VolumeIncrement: -(0.01*VolumeIncrement), TRUE);
+					if (Form1->chkOSDEnabled->Checked) {
+						BOOL muted = ChangeMute(FALSE, FALSE, TRUE);
+						UnicodeString msg;
+						msg.sprintf(L"Volume: %d %%", (int)ceil(volume*100));
+						if (muted) msg += L" (muted)";
+						pOSD->SendMessage(msg, Form1->udOSDDuration->Position);
+                    }
+				} catch (Exception &e) {
+					Error(e.Message);
+				}
+				Voluming = false;
+			} else
+			if (kbdStruct.vkCode == ToggleMuteKey) // Toggle Mute
+			{
+				Form1->Memo1->SetFocus();
+				try {
+					BOOL muted = ChangeMute(FALSE, TRUE);
+					if (Form1->chkOSDEnabled->Checked)
+						pOSD->SendMessage(muted? L"Muted": L"Unmuted", Form1->udOSDDuration->Position);
+				} catch (Exception &e) {
+					Error(e.Message);
+				}
 			}
 		}
 	}
@@ -608,12 +658,22 @@ void __fastcall TForm1::FormDestroy(TObject *Sender)
 void TForm1::Load()
 {
 	TIniFile *ini = new TIniFile(ChangeFileExt(Application->ExeName, ".ini"));
+
 	Key = (DWORD)ini->ReadInteger(L"GENERAL", L"Hotkey", 0);
 	edtKey->Text = IntToStr((int)Key);
 	TermKey = (DWORD)ini->ReadInteger(L"GENERAL", L"TerminateHotkey", 0);
 	edtTermKey->Text = IntToStr((int)TermKey);
 	ScreenshotKey = (DWORD)ini->ReadInteger(L"GENERAL", L"ScreenshotHotkey", 0);
 	edtScreenshotKey->Text = IntToStr((int)ScreenshotKey);
+
+	VolumeUpKey = (DWORD)ini->ReadInteger(L"GENERAL", L"VolumeUpHotkey", 0);
+	edtVolumeUpKey->Text = IntToStr((int)VolumeUpKey);
+	VolumeDownKey = (DWORD)ini->ReadInteger(L"GENERAL", L"VolumeDownHotkey", 0);
+	edtVolumeDownKey->Text = IntToStr((int)VolumeDownKey);
+	ToggleMuteKey = (DWORD)ini->ReadInteger(L"GENERAL", L"ToggleMuteHotkey", 0);
+	edtToggleMuteKey->Text = IntToStr((int)ToggleMuteKey);
+	VolumeIncrement = ini->ReadInteger(L"GENERAL", L"VolumeIncrement", 2);
+
 	if (1 == ini->ReadInteger(L"GENERAL", L"VoiceEnglish", 1))
 		rbVoiceEnglish->Checked = true;
 	else
@@ -630,9 +690,16 @@ void TForm1::Load()
 void TForm1::Save()
 {
 	TIniFile *ini = new TIniFile(ChangeFileExt(Application->ExeName, ".ini"));
+
 	ini->WriteInteger(L"GENERAL", L"Hotkey", (int)Key);
 	ini->WriteInteger(L"GENERAL", L"TerminateHotkey", (int)TermKey);
 	ini->WriteInteger(L"GENERAL", L"ScreenshotHotkey", (int)ScreenshotKey);
+
+	ini->WriteInteger(L"GENERAL", L"VolumeUpHotkey", (int)VolumeUpKey);
+	ini->WriteInteger(L"GENERAL", L"VolumeDownHotkey", (int)VolumeDownKey);
+	ini->WriteInteger(L"GENERAL", L"ToggleMuteHotkey", (int)ToggleMuteKey);
+	ini->WriteInteger(L"GENERAL", L"VolumeIncrement", VolumeIncrement);
+
 	ini->WriteInteger(L"GENERAL", L"VoiceEnglish", rbVoiceEnglish->Checked?1:0);
 	ini->WriteInteger(L"GENERAL", L"VoiceEnabled", chkVoiceEnabled->Checked?1:0);
 	ini->WriteInteger(L"GENERAL", L"OSDDuration", udOSDDuration->Position);
@@ -647,7 +714,6 @@ void __fastcall TForm1::edtKeyEnter(TObject *Sender)
 	edtKey->Tag = 1;
 	edtKey->Text = L"Press single key";
 }
-//---------------------------------------------------------------------------
 void __fastcall TForm1::edtKeyExit(TObject *Sender)
 {
 	edtKey->Tag = 0;
@@ -659,7 +725,6 @@ void __fastcall TForm1::edtTermKeyEnter(TObject *Sender)
 	edtTermKey->Tag = 1;
 	edtTermKey->Text = L"Press single key";
 }
-//---------------------------------------------------------------------------
 void __fastcall TForm1::edtTermKeyExit(TObject *Sender)
 {
 	edtTermKey->Tag = 0;
@@ -671,12 +736,45 @@ void __fastcall TForm1::edtScreenshotKeyEnter(TObject *Sender)
 	edtScreenshotKey->Tag = 1;
 	edtScreenshotKey->Text = L"Press single key";
 }
-//---------------------------------------------------------------------------
 void __fastcall TForm1::edtScreenshotKeyExit(TObject *Sender)
 {
 	edtScreenshotKey->Tag = 0;
 	edtScreenshotKey->Text = IntToStr((int)ScreenshotKey);
 }
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtVolumeUpKeyEnter(TObject *Sender)
+{
+	edtVolumeUpKey->Tag = 1;
+	edtVolumeUpKey->Text = L"Press single key";
+}
+void __fastcall TForm1::edtVolumeUpKeyExit(TObject *Sender)
+{
+	edtVolumeUpKey->Tag = 0;
+	edtVolumeUpKey->Text = IntToStr((int)VolumeUpKey);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtVolumeDownKeyEnter(TObject *Sender)
+{
+	edtVolumeDownKey->Tag = 1;
+	edtVolumeDownKey->Text = L"Press single key";
+}
+void __fastcall TForm1::edtVolumeDownKeyExit(TObject *Sender)
+{
+	edtVolumeDownKey->Tag = 0;
+	edtVolumeDownKey->Text = IntToStr((int)VolumeDownKey);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtToggleMuteKeyEnter(TObject *Sender)
+{
+	edtToggleMuteKey->Tag = 1;
+	edtToggleMuteKey->Text = L"Press single key";
+}
+void __fastcall TForm1::edtToggleMuteKeyExit(TObject *Sender)
+{
+	edtToggleMuteKey->Tag = 0;
+	edtToggleMuteKey->Text = IntToStr((int)ToggleMuteKey);
+}
+
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnKeyDisableClick(TObject *Sender)
 {
@@ -696,6 +794,27 @@ void __fastcall TForm1::btnScreenshotKeyDisableClick(TObject *Sender)
 {
 	ScreenshotKey = 0;
 	edtScreenshotKey->Text = L"0";
+	Save();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnVolumeUpKeyDisableClick(TObject *Sender)
+{
+	VolumeUpKey = 0;
+	edtVolumeUpKey->Text = L"0";
+	Save();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnVolumeDownKeyDisableClick(TObject *Sender)
+{
+	VolumeDownKey = 0;
+	edtVolumeDownKey->Text = L"0";
+	Save();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnToggleMuteKeyDisableClick(TObject *Sender)
+{
+	ToggleMuteKey = 0;
+	edtToggleMuteKey->Text = L"0";
 	Save();
 }
 
@@ -779,5 +898,4 @@ void __fastcall TForm1::btnSSNdisableClick(TObject *Sender)
 }
 
 //---------------------------------------------------------------------------
-
 

@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'Form1'
-  ClientHeight = 356
+  ClientHeight = 440
   ClientWidth = 391
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -14,7 +14,7 @@ object Form1: TForm1
   OnDestroy = FormDestroy
   DesignSize = (
     391
-    356)
+    440)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -38,15 +38,37 @@ object Form1: TForm1
     Height = 13
     Caption = 'Take screenshot key (OSD required):'
   end
+  object Label5: TLabel
+    Left = 16
+    Top = 120
+    Width = 107
+    Height = 13
+    Caption = 'Sound volume Up key:'
+  end
+  object Label6: TLabel
+    Left = 16
+    Top = 147
+    Width = 121
+    Height = 13
+    Caption = 'Sound volume Down key:'
+  end
+  object Label7: TLabel
+    Left = 16
+    Top = 174
+    Width = 83
+    Height = 13
+    Caption = 'Toggle Mute key:'
+  end
   object Memo1: TMemo
     Left = 8
-    Top = 275
+    Top = 363
     Width = 375
-    Height = 73
+    Height = 69
     Anchors = [akLeft, akTop, akRight, akBottom]
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
+    ExplicitHeight = 78
   end
   object edtKey: TEdit
     Left = 201
@@ -81,7 +103,7 @@ object Form1: TForm1
   end
   object GroupBox1: TGroupBox
     Left = 201
-    Top = 119
+    Top = 207
     Width = 179
     Height = 78
     Caption = 'OSD'
@@ -145,7 +167,7 @@ object Form1: TForm1
   end
   object GroupBox2: TGroupBox
     Left = 8
-    Top = 119
+    Top = 207
     Width = 175
     Height = 78
     Caption = 'Notification voice'
@@ -183,7 +205,7 @@ object Form1: TForm1
   end
   object GroupBox3: TGroupBox
     Left = 8
-    Top = 200
+    Top = 288
     Width = 372
     Height = 69
     Caption = 'Screenshots - take (PNG) and notify (OSD) of new appearing'
@@ -247,7 +269,7 @@ object Form1: TForm1
     Width = 47
     Height = 25
     Caption = 'Disable'
-    TabOrder = 8
+    TabOrder = 11
     OnClick = btnKeyDisableClick
   end
   object btnTermKeyDisable: TButton
@@ -256,7 +278,7 @@ object Form1: TForm1
     Width = 47
     Height = 25
     Caption = 'Disable'
-    TabOrder = 9
+    TabOrder = 12
     OnClick = btnTermKeyDisableClick
   end
   object btnScreenshotKeyDisable: TButton
@@ -265,7 +287,66 @@ object Form1: TForm1
     Width = 47
     Height = 25
     Caption = 'Disable'
-    TabOrder = 10
+    TabOrder = 13
     OnClick = btnScreenshotKeyDisableClick
+  end
+  object edtVolumeUpKey: TEdit
+    Left = 201
+    Top = 117
+    Width = 101
+    Height = 21
+    ReadOnly = True
+    TabOrder = 8
+    Text = 'edtVolumeUpKey'
+    OnEnter = edtVolumeUpKeyEnter
+    OnExit = edtVolumeUpKeyExit
+  end
+  object edtVolumeDownKey: TEdit
+    Left = 201
+    Top = 144
+    Width = 101
+    Height = 21
+    ReadOnly = True
+    TabOrder = 9
+    Text = 'edtVolumeDownKey'
+    OnEnter = edtVolumeDownKeyEnter
+    OnExit = edtVolumeDownKeyExit
+  end
+  object edtToggleMuteKey: TEdit
+    Left = 201
+    Top = 171
+    Width = 101
+    Height = 21
+    TabOrder = 10
+    Text = 'edtToggleMuteKey'
+    OnEnter = edtToggleMuteKeyEnter
+    OnExit = edtToggleMuteKeyExit
+  end
+  object btnVolumeUpKeyDisable: TButton
+    Left = 308
+    Top = 116
+    Width = 47
+    Height = 25
+    Caption = 'Disable'
+    TabOrder = 14
+    OnClick = btnVolumeUpKeyDisableClick
+  end
+  object btnVolumeDownKeyDisable: TButton
+    Left = 308
+    Top = 143
+    Width = 47
+    Height = 25
+    Caption = 'Disable'
+    TabOrder = 15
+    OnClick = btnVolumeDownKeyDisableClick
+  end
+  object btnToggleMuteKeyDisable: TButton
+    Left = 308
+    Top = 170
+    Width = 47
+    Height = 25
+    Caption = 'Disable'
+    TabOrder = 16
+    OnClick = btnToggleMuteKeyDisableClick
   end
 end

@@ -42,6 +42,15 @@ __published:	// IDE-managed Components
 	TButton *btnKeyDisable;
 	TButton *btnTermKeyDisable;
 	TButton *btnScreenshotKeyDisable;
+	TLabel *Label5;
+	TLabel *Label6;
+	TLabel *Label7;
+	TEdit *edtVolumeUpKey;
+	TEdit *edtVolumeDownKey;
+	TEdit *edtToggleMuteKey;
+	TButton *btnVolumeUpKeyDisable;
+	TButton *btnVolumeDownKeyDisable;
+	TButton *btnToggleMuteKeyDisable;
 	void __fastcall FormDestroy(TObject *Sender);
 	void __fastcall edtKeyEnter(TObject *Sender);
 	void __fastcall edtKeyExit(TObject *Sender);
@@ -58,6 +67,15 @@ __published:	// IDE-managed Components
 	void __fastcall btnScreenshotKeyDisableClick(TObject *Sender);
 	void __fastcall btnKeyDisableClick(TObject *Sender);
 	void __fastcall btnTermKeyDisableClick(TObject *Sender);
+	void __fastcall edtVolumeUpKeyEnter(TObject *Sender);
+	void __fastcall edtVolumeUpKeyExit(TObject *Sender);
+	void __fastcall edtVolumeDownKeyEnter(TObject *Sender);
+	void __fastcall edtVolumeDownKeyExit(TObject *Sender);
+	void __fastcall edtToggleMuteKeyEnter(TObject *Sender);
+	void __fastcall edtToggleMuteKeyExit(TObject *Sender);
+	void __fastcall btnVolumeUpKeyDisableClick(TObject *Sender);
+	void __fastcall btnVolumeDownKeyDisableClick(TObject *Sender);
+	void __fastcall btnToggleMuteKeyDisableClick(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
 	void Load();
