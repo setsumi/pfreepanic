@@ -11,7 +11,7 @@
 #include <ComCtrls.hpp>
 
 //---------------------------------------------------------------------------
-class TForm1 : public TForm
+class TFormPfreepanic : public TForm
 {
 __published:	// IDE-managed Components
 	TMemo *Memo1;
@@ -77,13 +77,14 @@ __published:	// IDE-managed Components
 	void __fastcall btnVolumeDownKeyDisableClick(TObject *Sender);
 	void __fastcall btnToggleMuteKeyDisableClick(TObject *Sender);
 private:	// User declarations
+	void __fastcall WndProc(TMessage& Message);
 public:		// User declarations
 	void Load();
 	void Save();
 
-	__fastcall TForm1(TComponent* Owner);
+	__fastcall TFormPfreepanic(TComponent* Owner);
 };
 //---------------------------------------------------------------------------
-extern PACKAGE TForm1 *Form1;
+extern PACKAGE TFormPfreepanic *FormPfreepanic;
 //---------------------------------------------------------------------------
 #endif

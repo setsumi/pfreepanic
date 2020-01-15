@@ -1,7 +1,7 @@
-object Form1: TForm1
+object FormPfreepanic: TFormPfreepanic
   Left = 0
   Top = 0
-  Caption = 'Form1'
+  Caption = 'FormPfreepanic'
   ClientHeight = 440
   ClientWidth = 391
   Color = clBtnFace
@@ -68,7 +68,6 @@ object Form1: TForm1
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
-    ExplicitHeight = 78
   end
   object edtKey: TEdit
     Left = 201

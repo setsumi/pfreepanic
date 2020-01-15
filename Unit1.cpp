@@ -25,7 +25,7 @@
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
-TForm1 *Form1;
+TFormPfreepanic *FormPfreepanic;
 
 //---------------------------------------------------------------------------
 #define MEM_OFFSET  0xC00 // offset padding relative to .dll file
@@ -92,16 +92,16 @@ void InitGameCodes()
 	BYTE *data;
 
 #ifdef _WIN64
-	// MUSECA 1+1/2
-	game.winclass = L"MUSECA";
-	game.modulename = L"museca.dll";
+	// SDVX5
+	game.winclass = L"SOUND VOLTEX VIVID WAVE main";
+	game.modulename = L"soundvoltex.dll";
 
-	// 2018-07-30
-	hex.offset = 0x17E587;
-	data = (BYTE*)"\xFF\x83\x48\x14\x00\x00";
-	hex.off.assign(data, data + 6);
-	data = (BYTE*)"\x90\x90\x90\x90\x90\x90";
-	hex.on.assign(data, data + 6);
+	// 2019-10-31 CN ver.
+	hex.offset = 0x536D5A;
+	data = (BYTE*)"\x48\x63\x81\xA8\x12\x00\x00\x48\x8B\xF2\x48\x8B\xF9\x83\xF8\x04\x0F\x8D\x01\x02\x00\x00";
+	hex.off.assign(data, data + 22);
+	data = (BYTE*)"\x48\xc7\xc0\x01\x00\x00\x00\x48\x89\x81\xa8\x12\x00\x00\x48\x89\xd6\x48\x89\xcf\x90\x90";
+	hex.on.assign(data, data + 22);
 	ver.push_back(hex);
 
 	game.versions.push_back(ver);
@@ -324,17 +324,17 @@ void Toggle()
 					}
 					// Write success, show notification
 					if (onoff == 0) { // notify NORMAL first
-						Form1->Caption = UnicodeString(L"NORMAL - ") + Application->Title;
-						if (Form1->chkOSDEnabled->Checked)
-							pOSD->SendMessage(L"Credit Mode", Form1->udOSDDuration->Position);
-						if (Form1->chkVoiceEnabled->Checked)
-							PlaySound((ExtractFilePath(Application->ExeName) + (Form1->rbVoiceEnglish->Checked? L"off-eng.wav" : L"off.wav")).c_str(), NULL, SND_FILENAME|SND_ASYNC);
+						FormPfreepanic->Caption = UnicodeString(L"NORMAL - ") + Application->Title;
+						if (FormPfreepanic->chkOSDEnabled->Checked)
+							pOSD->SendMessage(L"Credit Mode", FormPfreepanic->udOSDDuration->Position);
+						if (FormPfreepanic->chkVoiceEnabled->Checked)
+							PlaySound((ExtractFilePath(Application->ExeName) + (FormPfreepanic->rbVoiceEnglish->Checked? L"off-eng.wav" : L"off.wav")).c_str(), NULL, SND_FILENAME|SND_ASYNC);
 					} else {
-						Form1->Caption = UnicodeString(L"PFREE - ") + Application->Title;
-						if (Form1->chkOSDEnabled->Checked)
-							pOSD->SendMessage(L"Premium Free Mode", Form1->udOSDDuration->Position);
-						if (Form1->chkVoiceEnabled->Checked)
-							PlaySound((ExtractFilePath(Application->ExeName) + (Form1->rbVoiceEnglish->Checked? L"on-eng.wav" : L"on.wav")).c_str(), NULL, SND_FILENAME|SND_ASYNC);
+						FormPfreepanic->Caption = UnicodeString(L"PFREE - ") + Application->Title;
+						if (FormPfreepanic->chkOSDEnabled->Checked)
+							pOSD->SendMessage(L"Premium Free Mode", FormPfreepanic->udOSDDuration->Position);
+						if (FormPfreepanic->chkVoiceEnabled->Checked)
+							PlaySound((ExtractFilePath(Application->ExeName) + (FormPfreepanic->rbVoiceEnglish->Checked? L"on-eng.wav" : L"on.wav")).c_str(), NULL, SND_FILENAME|SND_ASYNC);
 					}
 					// Done, exiting
 					goto exit_Toggle;
@@ -355,15 +355,15 @@ exit_Toggle:
 //---------------------------------------------------------------------------
 void BeginPrint()
 {
-	Form1->Memo1->Color = clWindow;
-	Form1->Memo1->Font->Color = clWindowText;
-	Form1->Memo1->Font->Style = TFontStyles();
-	Form1->Memo1->Clear();
+	FormPfreepanic->Memo1->Color = clWindow;
+	FormPfreepanic->Memo1->Font->Color = clWindowText;
+	FormPfreepanic->Memo1->Font->Style = TFontStyles();
+	FormPfreepanic->Memo1->Clear();
 }
 
 void Print(UnicodeString msg)
 {
-	Form1->Memo1->Lines->Add(msg);
+	FormPfreepanic->Memo1->Lines->Add(msg);
 }
 
 UnicodeString WinFormatError(DWORD errNo)
@@ -380,13 +380,13 @@ UnicodeString WinFormatError(DWORD errNo)
 
 void Error(UnicodeString msg)
 {
-	Form1->Memo1->Color = clRed;
-	Form1->Memo1->Font->Color = clYellow;
-	Form1->Memo1->Font->Style = TFontStyles() << fsBold;
+	FormPfreepanic->Memo1->Color = clRed;
+	FormPfreepanic->Memo1->Font->Color = clYellow;
+	FormPfreepanic->Memo1->Font->Style = TFontStyles() << fsBold;
 
-	Form1->Memo1->Lines->Text = UnicodeString(L"ERROR:\n") + msg;
+	FormPfreepanic->Memo1->Lines->Text = UnicodeString(L"ERROR:\n") + msg;
 
-	Form1->Memo1->SetFocus();
+	FormPfreepanic->Memo1->SetFocus();
 	MessageBeep(MB_ICONHAND);
 }
 
@@ -399,7 +399,7 @@ void WinError(UnicodeString msg)
 void ThreadWatchDir()
 {
 	// Directory to watch.
-	UnicodeString csDirectory = Form1->edtSSNpath->Text; //L"C:\\";
+	UnicodeString csDirectory = FormPfreepanic->edtSSNpath->Text; //L"C:\\";
 	HANDLE hDirectory = CreateFile( csDirectory.c_str(),
 																FILE_LIST_DIRECTORY,
 																FILE_SHARE_READ|FILE_SHARE_DELETE,
@@ -408,7 +408,7 @@ void ThreadWatchDir()
 																FILE_FLAG_BACKUP_SEMANTICS,
 																NULL );
 	if (hDirectory == INVALID_HANDLE_VALUE) {
-		Form1->lblSSNstatus->Caption = L"Error";
+		FormPfreepanic->lblSSNstatus->Caption = L"Error";
 		return;
 	}
 
@@ -428,7 +428,7 @@ void ThreadWatchDir()
 												 0, 0 );
 		if (!readsuccess) {
 			CloseHandle(hDirectory);
-			Form1->lblSSNstatus->Caption = L"Error";
+			FormPfreepanic->lblSSNstatus->Caption = L"Error";
 			return;
 		}
 
@@ -459,7 +459,7 @@ void ThreadWatchDir()
 		}
 		// notify of files
 		if (files.Length()) {
-			pOSD->SendMessage(UnicodeString(L"New screenshot:\n") + files, Form1->udOSDDuration->Position);
+			pOSD->SendMessage(UnicodeString(L"New screenshot:\n") + files, FormPfreepanic->udOSDDuration->Position);
 		}
 	}
 }
@@ -522,68 +522,68 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 		if (nCode == HC_ACTION && wParam == WM_KEYDOWN && kbdStruct.vkCode > 0)
 		{
-			if (Form1->edtKey->Tag) {
+			if (FormPfreepanic->edtKey->Tag) {
 				Key = kbdStruct.vkCode;
-				Form1->Memo1->SetFocus();
-				Form1->Save();
+				FormPfreepanic->Memo1->SetFocus();
+				FormPfreepanic->Save();
 			} else
-			if (Form1->edtTermKey->Tag) {
+			if (FormPfreepanic->edtTermKey->Tag) {
 				TermKey = kbdStruct.vkCode;
-				Form1->Memo1->SetFocus();
-				Form1->Save();
+				FormPfreepanic->Memo1->SetFocus();
+				FormPfreepanic->Save();
 			} else
-			if (Form1->edtScreenshotKey->Tag) {
+			if (FormPfreepanic->edtScreenshotKey->Tag) {
 				ScreenshotKey = kbdStruct.vkCode;
-				Form1->Memo1->SetFocus();
-				Form1->Save();
+				FormPfreepanic->Memo1->SetFocus();
+				FormPfreepanic->Save();
 			} else
-			if (Form1->edtVolumeUpKey->Tag) {
+			if (FormPfreepanic->edtVolumeUpKey->Tag) {
 				VolumeUpKey = kbdStruct.vkCode;
-				Form1->Memo1->SetFocus();
-				Form1->Save();
+				FormPfreepanic->Memo1->SetFocus();
+				FormPfreepanic->Save();
 			} else
-			if (Form1->edtVolumeDownKey->Tag) {
+			if (FormPfreepanic->edtVolumeDownKey->Tag) {
 				VolumeDownKey = kbdStruct.vkCode;
-				Form1->Memo1->SetFocus();
-				Form1->Save();
+				FormPfreepanic->Memo1->SetFocus();
+				FormPfreepanic->Save();
 			} else
-			if (Form1->edtToggleMuteKey->Tag) {
+			if (FormPfreepanic->edtToggleMuteKey->Tag) {
 				ToggleMuteKey = kbdStruct.vkCode;
-				Form1->Memo1->SetFocus();
-				Form1->Save();
+				FormPfreepanic->Memo1->SetFocus();
+				FormPfreepanic->Save();
 			} else
 			if (kbdStruct.vkCode == Key && !Working) // Toggle PFree
 			{
 				Working = true;
-				Form1->Memo1->SetFocus();
+				FormPfreepanic->Memo1->SetFocus();
 				Toggle();
 				Working = false;
 			} else
 			if (kbdStruct.vkCode == TermKey && !Terminating) // Terminate Game
 			{
 				Terminating = true;
-				Form1->Memo1->SetFocus();
+				FormPfreepanic->Memo1->SetFocus();
 				Terminate();
 				Terminating = false;
 			} else
 			if (kbdStruct.vkCode == ScreenshotKey) // Take Screenshot
 			{
-				Form1->Memo1->SetFocus();
-				if (Form1->edtSSNpath->Text.Length())
-					pOSD->SendMessage(Form1->edtSSNpath->Text, 1);
+				FormPfreepanic->Memo1->SetFocus();
+				if (FormPfreepanic->edtSSNpath->Text.Length())
+					pOSD->SendMessage(FormPfreepanic->edtSSNpath->Text, 1);
 			} else
 			if ((kbdStruct.vkCode == VolumeUpKey || kbdStruct.vkCode == VolumeDownKey) && !Voluming) // Volume Up/Down
 			{
 				Voluming = true;
-				Form1->Memo1->SetFocus();
+				FormPfreepanic->Memo1->SetFocus();
 				try {
 					double volume = ChangeVolume((kbdStruct.vkCode == VolumeUpKey)? 0.01*VolumeIncrement: -(0.01*VolumeIncrement), TRUE);
-					if (Form1->chkOSDEnabled->Checked) {
+					if (FormPfreepanic->chkOSDEnabled->Checked) {
 						BOOL muted = ChangeMute(FALSE, FALSE, TRUE);
 						UnicodeString msg;
 						msg.sprintf(L"Volume: %d %%", (int)ceil(volume*100));
 						if (muted) msg += L" (muted)";
-						pOSD->SendMessage(msg, Form1->udOSDDuration->Position);
+						pOSD->SendMessage(msg, FormPfreepanic->udOSDDuration->Position);
                     }
 				} catch (Exception &e) {
 					Error(e.Message);
@@ -592,11 +592,11 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 			} else
 			if (kbdStruct.vkCode == ToggleMuteKey) // Toggle Mute
 			{
-				Form1->Memo1->SetFocus();
+				FormPfreepanic->Memo1->SetFocus();
 				try {
 					BOOL muted = ChangeMute(FALSE, TRUE);
-					if (Form1->chkOSDEnabled->Checked)
-						pOSD->SendMessage(muted? L"Muted": L"Unmuted", Form1->udOSDDuration->Position);
+					if (FormPfreepanic->chkOSDEnabled->Checked)
+						pOSD->SendMessage(muted? L"Muted": L"Unmuted", FormPfreepanic->udOSDDuration->Position);
 				} catch (Exception &e) {
 					Error(e.Message);
 				}
@@ -609,12 +609,12 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 }
 
 //---------------------------------------------------------------------------
-__fastcall TForm1::TForm1(TComponent* Owner)
+__fastcall TFormPfreepanic::TFormPfreepanic(TComponent* Owner)
 	: TForm(Owner)
 {
 #ifdef _WIN64
-	Application->Title = L"pfreepanic64";
-	Caption = L"pfreepanic64";
+	Application->Title = L"pfreepanic-vw";
+	Caption = L"pfreepanic-vw";
 #else
 	Application->Title = L"pfreepanic";
 	Caption = L"pfreepanic";
@@ -623,6 +623,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 	InitGameCodes();
 
 	pTermList = new TList();
+	pTermList->Add(new TermWnd(L"SOUND VOLTEX VIVID WAVE main", L"SOUND VOLTEX VIVID WAVE main"));
 	pTermList->Add(new TermWnd(L"SOUND VOLTEX IV HEAVENLY HAVEN 1", L"SOUND VOLTEX IV HEAVENLY HAVEN 1"));
 	pTermList->Add(new TermWnd(L"SOUND VOLTEX III GRAVITY WARS", L"SOUND VOLTEX III GRAVITY WARS"));
 	pTermList->Add(new TermWnd(L"SOUND VOLTEX II -infinite infection-", L"SOUND VOLTEX II -infinite infection-"));
@@ -634,6 +635,13 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
 	// load .ini
 	Load();
+#ifdef _WIN64
+	chkVoiceEnabled->Checked = false;
+	chkVoiceEnabled->Enabled = false;
+	rbVoiceEnglish->Enabled = false;
+	rbVoiceJapanese->Enabled = false;
+#endif
+
 	// set global keyboard hook to capture key press
 	hHook = SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)KeyboardProc, GetModuleHandle(NULL), 0);
 	// OSD object
@@ -646,7 +654,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 }
 
 //---------------------------------------------------------------------------
-void __fastcall TForm1::FormDestroy(TObject *Sender)
+void __fastcall TFormPfreepanic::FormDestroy(TObject *Sender)
 {
 	if (hHook) UnhookWindowsHookEx(hHook);
 	Save();
@@ -655,7 +663,7 @@ void __fastcall TForm1::FormDestroy(TObject *Sender)
 }
 
 //---------------------------------------------------------------------------
-void TForm1::Load()
+void TFormPfreepanic::Load()
 {
 	TIniFile *ini = new TIniFile(ChangeFileExt(Application->ExeName, ".ini"));
 
@@ -687,7 +695,7 @@ void TForm1::Load()
 }
 
 //---------------------------------------------------------------------------
-void TForm1::Save()
+void TFormPfreepanic::Save()
 {
 	TIniFile *ini = new TIniFile(ChangeFileExt(Application->ExeName, ".ini"));
 
@@ -709,109 +717,109 @@ void TForm1::Save()
 }
 
 //---------------------------------------------------------------------------
-void __fastcall TForm1::edtKeyEnter(TObject *Sender)
+void __fastcall TFormPfreepanic::edtKeyEnter(TObject *Sender)
 {
 	edtKey->Tag = 1;
 	edtKey->Text = L"Press single key";
 }
-void __fastcall TForm1::edtKeyExit(TObject *Sender)
+void __fastcall TFormPfreepanic::edtKeyExit(TObject *Sender)
 {
 	edtKey->Tag = 0;
 	edtKey->Text = IntToStr((int)Key);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::edtTermKeyEnter(TObject *Sender)
+void __fastcall TFormPfreepanic::edtTermKeyEnter(TObject *Sender)
 {
 	edtTermKey->Tag = 1;
 	edtTermKey->Text = L"Press single key";
 }
-void __fastcall TForm1::edtTermKeyExit(TObject *Sender)
+void __fastcall TFormPfreepanic::edtTermKeyExit(TObject *Sender)
 {
 	edtTermKey->Tag = 0;
 	edtTermKey->Text = IntToStr((int)TermKey);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::edtScreenshotKeyEnter(TObject *Sender)
+void __fastcall TFormPfreepanic::edtScreenshotKeyEnter(TObject *Sender)
 {
 	edtScreenshotKey->Tag = 1;
 	edtScreenshotKey->Text = L"Press single key";
 }
-void __fastcall TForm1::edtScreenshotKeyExit(TObject *Sender)
+void __fastcall TFormPfreepanic::edtScreenshotKeyExit(TObject *Sender)
 {
 	edtScreenshotKey->Tag = 0;
 	edtScreenshotKey->Text = IntToStr((int)ScreenshotKey);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::edtVolumeUpKeyEnter(TObject *Sender)
+void __fastcall TFormPfreepanic::edtVolumeUpKeyEnter(TObject *Sender)
 {
 	edtVolumeUpKey->Tag = 1;
 	edtVolumeUpKey->Text = L"Press single key";
 }
-void __fastcall TForm1::edtVolumeUpKeyExit(TObject *Sender)
+void __fastcall TFormPfreepanic::edtVolumeUpKeyExit(TObject *Sender)
 {
 	edtVolumeUpKey->Tag = 0;
 	edtVolumeUpKey->Text = IntToStr((int)VolumeUpKey);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::edtVolumeDownKeyEnter(TObject *Sender)
+void __fastcall TFormPfreepanic::edtVolumeDownKeyEnter(TObject *Sender)
 {
 	edtVolumeDownKey->Tag = 1;
 	edtVolumeDownKey->Text = L"Press single key";
 }
-void __fastcall TForm1::edtVolumeDownKeyExit(TObject *Sender)
+void __fastcall TFormPfreepanic::edtVolumeDownKeyExit(TObject *Sender)
 {
 	edtVolumeDownKey->Tag = 0;
 	edtVolumeDownKey->Text = IntToStr((int)VolumeDownKey);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::edtToggleMuteKeyEnter(TObject *Sender)
+void __fastcall TFormPfreepanic::edtToggleMuteKeyEnter(TObject *Sender)
 {
 	edtToggleMuteKey->Tag = 1;
 	edtToggleMuteKey->Text = L"Press single key";
 }
-void __fastcall TForm1::edtToggleMuteKeyExit(TObject *Sender)
+void __fastcall TFormPfreepanic::edtToggleMuteKeyExit(TObject *Sender)
 {
 	edtToggleMuteKey->Tag = 0;
 	edtToggleMuteKey->Text = IntToStr((int)ToggleMuteKey);
 }
 
 //---------------------------------------------------------------------------
-void __fastcall TForm1::btnKeyDisableClick(TObject *Sender)
+void __fastcall TFormPfreepanic::btnKeyDisableClick(TObject *Sender)
 {
 	Key = 0;
 	edtKey->Text = L"0";
 	Save();
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::btnTermKeyDisableClick(TObject *Sender)
+void __fastcall TFormPfreepanic::btnTermKeyDisableClick(TObject *Sender)
 {
 	TermKey = 0;
 	edtTermKey->Text = L"0";
 	Save();
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::btnScreenshotKeyDisableClick(TObject *Sender)
+void __fastcall TFormPfreepanic::btnScreenshotKeyDisableClick(TObject *Sender)
 {
 	ScreenshotKey = 0;
 	edtScreenshotKey->Text = L"0";
 	Save();
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::btnVolumeUpKeyDisableClick(TObject *Sender)
+void __fastcall TFormPfreepanic::btnVolumeUpKeyDisableClick(TObject *Sender)
 {
 	VolumeUpKey = 0;
 	edtVolumeUpKey->Text = L"0";
 	Save();
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::btnVolumeDownKeyDisableClick(TObject *Sender)
+void __fastcall TFormPfreepanic::btnVolumeDownKeyDisableClick(TObject *Sender)
 {
 	VolumeDownKey = 0;
 	edtVolumeDownKey->Text = L"0";
 	Save();
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::btnToggleMuteKeyDisableClick(TObject *Sender)
+void __fastcall TFormPfreepanic::btnToggleMuteKeyDisableClick(TObject *Sender)
 {
 	ToggleMuteKey = 0;
 	edtToggleMuteKey->Text = L"0";
@@ -819,7 +827,7 @@ void __fastcall TForm1::btnToggleMuteKeyDisableClick(TObject *Sender)
 }
 
 //---------------------------------------------------------------------------
-void __fastcall TForm1::btnInfoClick(TObject *Sender)
+void __fastcall TFormPfreepanic::btnInfoClick(TObject *Sender)
 {
 	ShowMessage(L"How to use:\n"
 		"\t1. Run the app\n"
@@ -830,14 +838,15 @@ void __fastcall TForm1::btnInfoClick(TObject *Sender)
 		"\t5. PROFIT\n"
 		"\nPFree mode is supported on:\n"
 #ifdef _WIN64
-		"\tMUSECA 1+1/2 (2018-07-30)\n"
+		"\tSOUND VOLTEX VIVID WAVE (2019103100 CN ver.)\n"
 #else
 		"\tSOUND VOLTEX IV HEAVENLY HAVEN (2019020600 final)\n"
 		"\tSOUND VOLTEX IV HEAVENLY HAVEN (2018011602 enhanced continue)\n"
 		"\tSOUND VOLTEX III GRAVITY WARS Season 2 (2016121200)\n"
 #endif
 		"\nTerminate game is supported on:\n"
-		"\tSOUND VOLTEX IV HEAVENLY HAVEN 1\n"
+		"\tSOUND VOLTEX VIVID WAVE\n"
+		"\tSOUND VOLTEX IV HEAVENLY HAVEN\n"
 		"\tSOUND VOLTEX III GRAVITY WARS\n"
 		"\tSOUND VOLTEX II -infinite infection-\n"
 		"\tbeatmania IIDX 24 SINOBUZ\n"
@@ -845,12 +854,15 @@ void __fastcall TForm1::btnInfoClick(TObject *Sender)
 		"\tMUSECA\n"
 		"\tBeatStream\n"
 		"\tGITADORA Tri-Boost Re:EVOLVE\n"
-		"\tGITADORA Matixx"
+		"\tGITADORA Matixx\n"
+		"\n"
+		"Command line parameters:\n"
+		"\tclose - close program if running"
 		);
 }
 
 //---------------------------------------------------------------------------
-void __fastcall TForm1::btnOSDTestClick(TObject *Sender)
+void __fastcall TFormPfreepanic::btnOSDTestClick(TObject *Sender)
 {
 	if (!pOSD->SendMessage(L"Test Message", udOSDDuration->Position)) {
 		Error(L"Unable to send message.\nPress [?] for instructions.");
@@ -858,7 +870,7 @@ void __fastcall TForm1::btnOSDTestClick(TObject *Sender)
 }
 
 //---------------------------------------------------------------------------
-void __fastcall TForm1::btnOSDHelpClick(TObject *Sender)
+void __fastcall TFormPfreepanic::btnOSDHelpClick(TObject *Sender)
 {
 	ShowMessage(L"How to use OSD:\n"
 #ifdef _WIN64
@@ -878,12 +890,12 @@ void __fastcall TForm1::btnOSDHelpClick(TObject *Sender)
 }
 
 //---------------------------------------------------------------------------
-void __fastcall TForm1::edtSSNpathChange(TObject *Sender)
+void __fastcall TFormPfreepanic::edtSSNpathChange(TObject *Sender)
 {
 	lblSSNstatus->Caption = L"Restart required to apply changes";
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::btnSSNpathClick(TObject *Sender)
+void __fastcall TFormPfreepanic::btnSSNpathClick(TObject *Sender)
 {
 	UnicodeString dir;
 	if (SelectDirectory(L"Select Screenshots Folder", L"", dir, TSelectDirExtOpts()<<sdNewUI<<sdNewFolder, this)) {
@@ -892,9 +904,22 @@ void __fastcall TForm1::btnSSNpathClick(TObject *Sender)
 	}
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::btnSSNdisableClick(TObject *Sender)
+void __fastcall TFormPfreepanic::btnSSNdisableClick(TObject *Sender)
 {
 	edtSSNpath->Text = L"";
+}
+
+//---------------------------------------------------------------------------
+void __fastcall TFormPfreepanic::WndProc(TMessage& Message)
+{
+	if (Message.Msg == WM_APP+1)
+	{
+		Close();
+	}
+	else
+	{
+		TForm::WndProc(Message);
+	}
 }
 
 //---------------------------------------------------------------------------

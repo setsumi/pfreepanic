@@ -16,3 +16,7 @@ MUSECA
 >>>>>>>>>>( Window Title & Class )<<<<<<<<<<<
 BeatStream
 BeatStream
+
+>>>>>>>>>>( Window Title & Class )<<<<<<<<<<<
+SOUND VOLTEX VIVID WAVE main
+SOUND VOLTEX VIVID WAVE main
