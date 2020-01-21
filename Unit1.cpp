@@ -107,6 +107,17 @@ void InitGameCodes()
 	game.versions.push_back(ver);
 	ver.clear();
 
+	// 2019-10-08
+	hex.offset = 0x4E4F9A;
+	data = (BYTE*)"\x48\x63\x81\xE8\x11\x00\x00\x48\x8B\xF2\x48\x8B\xF9\x83\xF8\x04\x0F\x8D\xFB\x01\x00\x00";
+	hex.off.assign(data, data + 22);
+	data = (BYTE*)"\x48\xC7\xC0\x01\x00\x00\x00\x48\x89\x81\xE8\x11\x00\x00\x48\x89\xD6\x48\x89\xCF\x90\x90";
+	hex.on.assign(data, data + 22);
+	ver.push_back(hex);
+
+	game.versions.push_back(ver);
+	ver.clear();
+
 	g_games.push_back(game);
 	game.clear();
 #else
@@ -838,6 +849,7 @@ void __fastcall TFormPfreepanic::btnInfoClick(TObject *Sender)
 		"\t5. PROFIT\n"
 		"\nPFree mode is supported on:\n"
 #ifdef _WIN64
+		"\tSOUND VOLTEX VIVID WAVE (2019100800)\n"
 		"\tSOUND VOLTEX VIVID WAVE (2019103100 CN ver.)\n"
 #else
 		"\tSOUND VOLTEX IV HEAVENLY HAVEN (2019020600 final)\n"
