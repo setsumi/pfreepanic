@@ -96,22 +96,22 @@ void InitGameCodes()
 	game.winclass = L"SOUND VOLTEX VIVID WAVE main";
 	game.modulename = L"soundvoltex.dll";
 
-	// 2019-10-31 CN ver.
-	hex.offset = 0x536D5A;
-	data = (BYTE*)"\x48\x63\x81\xA8\x12\x00\x00\x48\x8B\xF2\x48\x8B\xF9\x83\xF8\x04\x0F\x8D\x01\x02\x00\x00";
+	// KFC-2019100800
+	hex.offset = 0x4E4F9A;
+	data = (BYTE*)"\x48\x63\x81\xE8\x11\x00\x00\x48\x8B\xF2\x48\x8B\xF9\x83\xF8\x04\x0F\x8D\xFB\x01\x00\x00";
 	hex.off.assign(data, data + 22);
-	data = (BYTE*)"\x48\xc7\xc0\x01\x00\x00\x00\x48\x89\x81\xa8\x12\x00\x00\x48\x89\xd6\x48\x89\xcf\x90\x90";
+	data = (BYTE*)"\x48\xC7\xC0\x01\x00\x00\x00\x48\x89\x81\xE8\x11\x00\x00\x48\x89\xD6\x48\x89\xCF\x90\x90";
 	hex.on.assign(data, data + 22);
 	ver.push_back(hex);
 
 	game.versions.push_back(ver);
 	ver.clear();
 
-	// 2019-10-08
-	hex.offset = 0x4E4F9A;
-	data = (BYTE*)"\x48\x63\x81\xE8\x11\x00\x00\x48\x8B\xF2\x48\x8B\xF9\x83\xF8\x04\x0F\x8D\xFB\x01\x00\x00";
+	// 2019103100 CN ver.
+	hex.offset = 0x536D5A;
+	data = (BYTE*)"\x48\x63\x81\xA8\x12\x00\x00\x48\x8B\xF2\x48\x8B\xF9\x83\xF8\x04\x0F\x8D\x01\x02\x00\x00";
 	hex.off.assign(data, data + 22);
-	data = (BYTE*)"\x48\xC7\xC0\x01\x00\x00\x00\x48\x89\x81\xE8\x11\x00\x00\x48\x89\xD6\x48\x89\xCF\x90\x90";
+	data = (BYTE*)"\x48\xc7\xc0\x01\x00\x00\x00\x48\x89\x81\xa8\x12\x00\x00\x48\x89\xd6\x48\x89\xcf\x90\x90";
 	hex.on.assign(data, data + 22);
 	ver.push_back(hex);
 
@@ -646,12 +646,6 @@ __fastcall TFormPfreepanic::TFormPfreepanic(TComponent* Owner)
 
 	// load .ini
 	Load();
-#ifdef _WIN64
-	chkVoiceEnabled->Checked = false;
-	chkVoiceEnabled->Enabled = false;
-	rbVoiceEnglish->Enabled = false;
-	rbVoiceJapanese->Enabled = false;
-#endif
 
 	// set global keyboard hook to capture key press
 	hHook = SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)KeyboardProc, GetModuleHandle(NULL), 0);
