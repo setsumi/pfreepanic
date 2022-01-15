@@ -1,4 +1,6 @@
-# Build dirs
+/__astcache
+/__history
+/__recovery
 /Debug
 /Release
 /*.local
@@ -14,6 +16,8 @@
 
 /**/*.~*
 /**/*.#*
+/**/*.astcache
+/**/*.astinfo
 
 # Output files
 #/**/*.dll

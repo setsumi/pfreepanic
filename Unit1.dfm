@@ -2,7 +2,7 @@ object FormPfreepanic: TFormPfreepanic
   Left = 0
   Top = 0
   Caption = 'FormPfreepanic'
-  ClientHeight = 440
+  ClientHeight = 494
   ClientWidth = 391
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -14,7 +14,7 @@ object FormPfreepanic: TFormPfreepanic
   OnDestroy = FormDestroy
   DesignSize = (
     391
-    440)
+    494)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -59,11 +59,18 @@ object FormPfreepanic: TFormPfreepanic
     Height = 13
     Caption = 'Toggle Mute key:'
   end
+  object Label8: TLabel
+    Left = 16
+    Top = 202
+    Width = 72
+    Height = 13
+    Caption = 'Auto login key:'
+  end
   object Memo1: TMemo
     Left = 8
-    Top = 363
+    Top = 416
     Width = 375
-    Height = 69
+    Height = 70
     Anchors = [akLeft, akTop, akRight, akBottom]
     ReadOnly = True
     ScrollBars = ssVertical
@@ -102,7 +109,7 @@ object FormPfreepanic: TFormPfreepanic
   end
   object GroupBox1: TGroupBox
     Left = 201
-    Top = 207
+    Top = 255
     Width = 179
     Height = 78
     Caption = 'OSD'
@@ -166,7 +173,7 @@ object FormPfreepanic: TFormPfreepanic
   end
   object GroupBox2: TGroupBox
     Left = 8
-    Top = 207
+    Top = 255
     Width = 175
     Height = 78
     Caption = 'Notification voice'
@@ -204,7 +211,7 @@ object FormPfreepanic: TFormPfreepanic
   end
   object GroupBox3: TGroupBox
     Left = 8
-    Top = 288
+    Top = 336
     Width = 372
     Height = 69
     Caption = 'Screenshots - take (PNG) and notify (OSD) of new appearing'
@@ -347,5 +354,29 @@ object FormPfreepanic: TFormPfreepanic
     Caption = 'Disable'
     TabOrder = 16
     OnClick = btnToggleMuteKeyDisableClick
+  end
+  object edtLoginKey: TEdit
+    Left = 201
+    Top = 199
+    Width = 101
+    Height = 21
+    TabOrder = 17
+    Text = 'edtToggleMuteKey'
+    OnEnter = edtLoginKeyEnter
+    OnExit = edtLoginKeyExit
+  end
+  object btnLoginKeyDisable: TButton
+    Left = 308
+    Top = 198
+    Width = 47
+    Height = 25
+    Caption = 'Disable'
+    TabOrder = 18
+    OnClick = btnLoginKeyDisableClick
+  end
+  object tmrKbdPoll: TTimer
+    Interval = 50
+    OnTimer = tmrKbdPollTimer
+    Left = 352
   end
 end

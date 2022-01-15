@@ -9,6 +9,7 @@
 #include <Forms.hpp>
 #include <ExtCtrls.hpp>
 #include <ComCtrls.hpp>
+#include <Vcl.AppEvnts.hpp>
 
 //---------------------------------------------------------------------------
 class TFormPfreepanic : public TForm
@@ -51,6 +52,10 @@ __published:	// IDE-managed Components
 	TButton *btnVolumeUpKeyDisable;
 	TButton *btnVolumeDownKeyDisable;
 	TButton *btnToggleMuteKeyDisable;
+	TLabel *Label8;
+	TEdit *edtLoginKey;
+	TButton *btnLoginKeyDisable;
+	TTimer *tmrKbdPoll;
 	void __fastcall FormDestroy(TObject *Sender);
 	void __fastcall edtKeyEnter(TObject *Sender);
 	void __fastcall edtKeyExit(TObject *Sender);
@@ -76,11 +81,19 @@ __published:	// IDE-managed Components
 	void __fastcall btnVolumeUpKeyDisableClick(TObject *Sender);
 	void __fastcall btnVolumeDownKeyDisableClick(TObject *Sender);
 	void __fastcall btnToggleMuteKeyDisableClick(TObject *Sender);
+	void __fastcall edtLoginKeyEnter(TObject *Sender);
+	void __fastcall edtLoginKeyExit(TObject *Sender);
+	void __fastcall btnLoginKeyDisableClick(TObject *Sender);
+	void __fastcall tmrKbdPollTimer(TObject *Sender);
 private:	// User declarations
 	void __fastcall WndProc(TMessage& Message);
 public:		// User declarations
 	void Load();
 	void Save();
+	void Login();
+	void KeyPress(BYTE key, DWORD waitms);
+	void Hook();
+	void Unhook(bool cont = true);
 
 	__fastcall TFormPfreepanic(TComponent* Owner);
 };

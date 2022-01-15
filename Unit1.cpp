@@ -71,13 +71,281 @@ bool Working = false;
 bool Terminating = false;
 bool Voluming = false;
 
-DWORD Key = 0;
-DWORD TermKey = 0;
-DWORD ScreenshotKey = 0;
-DWORD VolumeUpKey = 0;
-DWORD VolumeDownKey = 0;
-DWORD ToggleMuteKey = 0;
-int VolumeIncrement = 2;
+typedef struct KeyStruct {
+static const int Timeout0 = 6000000; // 10 000 000 == 1sec
+static const int Timeout1 = 1000; // poll timer is 50ms anyway
+	DWORD key;
+	bool wasDown;
+	__int64 lastTime;
+	bool firstRepeat;
+	KeyStruct():key(0),wasDown(false),lastTime(0),firstRepeat(true) {}
+} KeyStruct;
+
+KeyStruct KeyS,
+	TermKeyS,
+	ScreenshotKeyS,
+	VolumeUpKeyS,
+	VolumeDownKeyS,
+	ToggleMuteKeyS,
+	LoginKeyS;
+int VolumeIncrement = 5;
+DWORD LoginWait = 0; // time to wait until input pin screen
+DWORD PinKey[4] = {0}; // auto login pin
+
+UnicodeString get_key_string(DWORD key)
+{
+	switch (key % 256) {
+		case 0:
+			return L"none";
+		case 0x01:
+			return L"Left MB";
+		case 0x02:
+			return L"Right MB";
+		case 0x04:
+			return L"Middle MB";
+		case 0x05:
+			return L"X1 MB";
+		case 0x06:
+			return L"X2 MB";
+		case 0x08:
+			return L"Backspace";
+		case 0x09:
+			return L"Tab";
+		case 0x0C:
+			return L"Clear";
+		case 0x0D:
+			return L"Enter";
+		case 0x10:
+			return L"Shift";
+		case 0x11:
+			return L"Ctrl";
+		case 0x12:
+			if (key > 255)
+				return L"AltGr";
+			else
+				return L"Alt";
+		case 0x13:
+			return L"Pause";
+		case 0x14:
+			return L"Caps Lock";
+		case 0x1B:
+			return L"Escape";
+		case 0x20:
+			return L"Space";
+		case 0x21:
+			return L"Page Up";
+		case 0x22:
+			return L"Page Down";
+		case 0x23:
+			return L"End";
+		case 0x24:
+			return L"Home";
+		case 0x25:
+			return L"Left";
+		case 0x26:
+			return L"Up";
+		case 0x27:
+			return L"Right";
+		case 0x28:
+			return L"Down";
+		case 0x2C:
+			return L"Prt Scr";
+		case 0x2D:
+			return L"Insert";
+		case 0x2E:
+			return L"Delete";
+		case 0x30:
+			return L"0";
+		case 0x31:
+			return L"1";
+		case 0x32:
+			return L"2";
+		case 0x33:
+			return L"3";
+		case 0x34:
+			return L"4";
+		case 0x35:
+			return L"5";
+		case 0x36:
+			return L"6";
+		case 0x37:
+			return L"7";
+		case 0x38:
+			return L"8";
+		case 0x39:
+			return L"9";
+		case 0x41:
+			return L"A";
+		case 0x42:
+			return L"B";
+		case 0x43:
+			return L"C";
+		case 0x44:
+			return L"D";
+		case 0x45:
+			return L"E";
+		case 0x46:
+			return L"F";
+		case 0x47:
+			return L"G";
+		case 0x48:
+			return L"H";
+		case 0x49:
+			return L"I";
+		case 0x4A:
+			return L"J";
+		case 0x4B:
+			return L"K";
+		case 0x4C:
+			return L"L";
+		case 0x4D:
+			return L"M";
+		case 0x4E:
+			return L"N";
+		case 0x4F:
+			return L"O";
+		case 0x50:
+			return L"P";
+		case 0x51:
+			return L"Q";
+		case 0x52:
+			return L"R";
+		case 0x53:
+			return L"S";
+		case 0x54:
+			return L"T";
+		case 0x55:
+			return L"U";
+		case 0x56:
+			return L"V";
+		case 0x57:
+			return L"W";
+		case 0x58:
+			return L"X";
+		case 0x59:
+			return L"Y";
+		case 0x5A:
+			return L"Z";
+		case 0x5B:
+			return L"Left Windows";
+		case 0x5C:
+			return L"Right Windows";
+		case 0x5D:
+			return L"Apps";
+		case 0x60:
+			return L"Num 0";
+		case 0x61:
+			return L"Num 1";
+		case 0x62:
+			return L"Num 2";
+		case 0x63:
+			return L"Num 3";
+		case 0x64:
+			return L"Num 4";
+		case 0x65:
+			return L"Num 5";
+		case 0x66:
+			return L"Num 6";
+		case 0x67:
+			return L"Num 7";
+		case 0x68:
+			return L"Num 8";
+		case 0x69:
+			return L"Num 9";
+		case 0x6A:
+			return L"*";
+		case 0x6B:
+			return L"+";
+		case 0x6C:
+			return L"Seperator";
+		case 0x6D:
+			return L"-";
+		case 0x6E:
+			return L".";
+		case 0x6F:
+			return L"/";
+		case 0x70:
+			return L"F1";
+		case 0x71:
+			return L"F2";
+		case 0x72:
+			return L"F3";
+		case 0x73:
+			return L"F4";
+		case 0x74:
+			return L"F5";
+		case 0x75:
+			return L"F6";
+		case 0x76:
+			return L"F7";
+		case 0x77:
+			return L"F8";
+		case 0x78:
+			return L"F9";
+		case 0x79:
+			return L"F10";
+		case 0x7A:
+			return L"F11";
+		case 0x7B:
+			return L"F12";
+		case 0x7C:
+			return L"F13";
+		case 0x7D:
+			return L"F14";
+		case 0x7E:
+			return L"F15";
+		case 0x7F:
+			return L"F16";
+		case 0x80:
+			return L"F17";
+		case 0x81:
+			return L"F18";
+		case 0x82:
+			return L"F19";
+		case 0x83:
+			return L"F20";
+		case 0x84:
+			return L"F21";
+		case 0x85:
+			return L"F22";
+		case 0x86:
+			return L"F23";
+		case 0x87:
+			return L"F24";
+		case 0x90:
+			return L"Num Lock";
+		case 0x91:
+			return L"Scroll Lock";
+		case 0xA0:
+			return L"Left Shift";
+		case 0xA1:
+			return L"Right Shift";
+		case 0xA2:
+			return L"Left Control";
+		case 0xA3:
+			return L"Right Control";
+		case 0xA4:
+			return L"Left Menu";
+		case 0xA5:
+			return L"Right Menu";
+		default:
+		{
+			// check win API
+			wchar_t keyName[128];
+			if (GetKeyNameText((LONG) (MapVirtualKey(key, MAPVK_VK_TO_VSC) << 16), keyName, 128))
+				return keyName;
+			return L"Unknown";
+		}
+	}
+}
+
+UnicodeString getKeyString(DWORD key)
+{
+	UnicodeString rv;
+	rv.sprintf(L"%s (%d)", get_key_string(key).w_str(), key);
+	return rv;
+}
+//---------------------------------------------------------------------------
 
 std::list<Game> g_games;
 TList *pTermList;
@@ -542,86 +810,42 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 		// struct to get virtual key codes
 		KBDLLHOOKSTRUCT kbdStruct = *((KBDLLHOOKSTRUCT*)lParam);
 
-		if (nCode == HC_ACTION && wParam == WM_KEYDOWN && kbdStruct.vkCode > 0)
+		if (nCode == HC_ACTION && wParam == WM_KEYUP && kbdStruct.vkCode > 0)
 		{
 			if (FormPfreepanic->edtKey->Tag) {
-				Key = kbdStruct.vkCode;
+				KeyS.key = kbdStruct.vkCode;
 				FormPfreepanic->Memo1->SetFocus();
 				FormPfreepanic->Save();
 			} else
 			if (FormPfreepanic->edtTermKey->Tag) {
-				TermKey = kbdStruct.vkCode;
+				TermKeyS.key = kbdStruct.vkCode;
 				FormPfreepanic->Memo1->SetFocus();
 				FormPfreepanic->Save();
 			} else
 			if (FormPfreepanic->edtScreenshotKey->Tag) {
-				ScreenshotKey = kbdStruct.vkCode;
+				ScreenshotKeyS.key = kbdStruct.vkCode;
 				FormPfreepanic->Memo1->SetFocus();
 				FormPfreepanic->Save();
 			} else
 			if (FormPfreepanic->edtVolumeUpKey->Tag) {
-				VolumeUpKey = kbdStruct.vkCode;
+				VolumeUpKeyS.key = kbdStruct.vkCode;
 				FormPfreepanic->Memo1->SetFocus();
 				FormPfreepanic->Save();
 			} else
 			if (FormPfreepanic->edtVolumeDownKey->Tag) {
-				VolumeDownKey = kbdStruct.vkCode;
+				VolumeDownKeyS.key = kbdStruct.vkCode;
 				FormPfreepanic->Memo1->SetFocus();
 				FormPfreepanic->Save();
 			} else
 			if (FormPfreepanic->edtToggleMuteKey->Tag) {
-				ToggleMuteKey = kbdStruct.vkCode;
+				ToggleMuteKeyS.key = kbdStruct.vkCode;
 				FormPfreepanic->Memo1->SetFocus();
 				FormPfreepanic->Save();
 			} else
-			if (kbdStruct.vkCode == Key && !Working) // Toggle PFree
-			{
-				Working = true;
+			if (FormPfreepanic->edtLoginKey->Tag) {
+				LoginKeyS.key = kbdStruct.vkCode;
 				FormPfreepanic->Memo1->SetFocus();
-				Toggle();
-				Working = false;
-			} else
-			if (kbdStruct.vkCode == TermKey && !Terminating) // Terminate Game
-			{
-				Terminating = true;
-				FormPfreepanic->Memo1->SetFocus();
-				Terminate();
-				Terminating = false;
-			} else
-			if (kbdStruct.vkCode == ScreenshotKey) // Take Screenshot
-			{
-				FormPfreepanic->Memo1->SetFocus();
-				if (FormPfreepanic->edtSSNpath->Text.Length())
-					pOSD->SendMessage(FormPfreepanic->edtSSNpath->Text, 1);
-			} else
-			if ((kbdStruct.vkCode == VolumeUpKey || kbdStruct.vkCode == VolumeDownKey) && !Voluming) // Volume Up/Down
-			{
-				Voluming = true;
-				FormPfreepanic->Memo1->SetFocus();
-				try {
-					double volume = ChangeVolume((kbdStruct.vkCode == VolumeUpKey)? 0.01*VolumeIncrement: -(0.01*VolumeIncrement), TRUE);
-					if (FormPfreepanic->chkOSDEnabled->Checked) {
-						BOOL muted = ChangeMute(FALSE, FALSE, TRUE);
-						UnicodeString msg;
-						msg.sprintf(L"Volume: %d %%", (int)ceil(volume*100));
-						if (muted) msg += L" (muted)";
-						pOSD->SendMessage(msg, FormPfreepanic->udOSDDuration->Position);
-                    }
-				} catch (Exception &e) {
-					Error(e.Message);
-				}
-				Voluming = false;
-			} else
-			if (kbdStruct.vkCode == ToggleMuteKey) // Toggle Mute
-			{
-				FormPfreepanic->Memo1->SetFocus();
-				try {
-					BOOL muted = ChangeMute(FALSE, TRUE);
-					if (FormPfreepanic->chkOSDEnabled->Checked)
-						pOSD->SendMessage(muted? L"Muted": L"Unmuted", FormPfreepanic->udOSDDuration->Position);
-				} catch (Exception &e) {
-					Error(e.Message);
-				}
+				FormPfreepanic->Save();
 			}
 		}
 	}
@@ -645,6 +869,7 @@ __fastcall TFormPfreepanic::TFormPfreepanic(TComponent* Owner)
 	InitGameCodes();
 
 	pTermList = new TList();
+	pTermList->Add(new TermWnd(L"SOUND VOLTEX EXCEED GEAR - Main Screen", L"SOUND VOLTEX EXCEED GEAR - Main Screen"));
 	pTermList->Add(new TermWnd(L"SOUND VOLTEX VIVID WAVE main", L"SOUND VOLTEX VIVID WAVE main"));
 	pTermList->Add(new TermWnd(L"SOUND VOLTEX IV HEAVENLY HAVEN 1", L"SOUND VOLTEX IV HEAVENLY HAVEN 1"));
 	pTermList->Add(new TermWnd(L"SOUND VOLTEX III GRAVITY WARS", L"SOUND VOLTEX III GRAVITY WARS"));
@@ -658,8 +883,6 @@ __fastcall TFormPfreepanic::TFormPfreepanic(TComponent* Owner)
 	// load .ini
 	Load();
 
-	// set global keyboard hook to capture key press
-	hHook = SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)KeyboardProc, GetModuleHandle(NULL), 0);
 	// OSD object
 	pOSD = new tOSD();
 	// Screenshot folder monitoring thread
@@ -672,7 +895,7 @@ __fastcall TFormPfreepanic::TFormPfreepanic(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TFormPfreepanic::FormDestroy(TObject *Sender)
 {
-	if (hHook) UnhookWindowsHookEx(hHook);
+	Unhook(false);
 	Save();
 	delete pTermList;
 	delete pOSD;
@@ -683,20 +906,28 @@ void TFormPfreepanic::Load()
 {
 	TIniFile *ini = new TIniFile(ChangeFileExt(Application->ExeName, ".ini"));
 
-	Key = (DWORD)ini->ReadInteger(L"GENERAL", L"Hotkey", 0);
-	edtKey->Text = IntToStr((int)Key);
-	TermKey = (DWORD)ini->ReadInteger(L"GENERAL", L"TerminateHotkey", 0);
-	edtTermKey->Text = IntToStr((int)TermKey);
-	ScreenshotKey = (DWORD)ini->ReadInteger(L"GENERAL", L"ScreenshotHotkey", 0);
-	edtScreenshotKey->Text = IntToStr((int)ScreenshotKey);
+	KeyS.key = (DWORD)ini->ReadInteger(L"GENERAL", L"Hotkey", 0);
+	edtKey->Text = getKeyString(KeyS.key);
+	TermKeyS.key = (DWORD)ini->ReadInteger(L"GENERAL", L"TerminateHotkey", 0);
+	edtTermKey->Text = getKeyString(TermKeyS.key);
+	ScreenshotKeyS.key = (DWORD)ini->ReadInteger(L"GENERAL", L"ScreenshotHotkey", 0);
+	edtScreenshotKey->Text = getKeyString(ScreenshotKeyS.key);
 
-	VolumeUpKey = (DWORD)ini->ReadInteger(L"GENERAL", L"VolumeUpHotkey", 0);
-	edtVolumeUpKey->Text = IntToStr((int)VolumeUpKey);
-	VolumeDownKey = (DWORD)ini->ReadInteger(L"GENERAL", L"VolumeDownHotkey", 0);
-	edtVolumeDownKey->Text = IntToStr((int)VolumeDownKey);
-	ToggleMuteKey = (DWORD)ini->ReadInteger(L"GENERAL", L"ToggleMuteHotkey", 0);
-	edtToggleMuteKey->Text = IntToStr((int)ToggleMuteKey);
+	VolumeUpKeyS.key = (DWORD)ini->ReadInteger(L"GENERAL", L"VolumeUpHotkey", 0);
+	edtVolumeUpKey->Text = getKeyString(VolumeUpKeyS.key);
+	VolumeDownKeyS.key = (DWORD)ini->ReadInteger(L"GENERAL", L"VolumeDownHotkey", 0);
+	edtVolumeDownKey->Text = getKeyString(VolumeDownKeyS.key);
+	ToggleMuteKeyS.key = (DWORD)ini->ReadInteger(L"GENERAL", L"ToggleMuteHotkey", 0);
+	edtToggleMuteKey->Text = getKeyString(ToggleMuteKeyS.key);
 	VolumeIncrement = ini->ReadInteger(L"GENERAL", L"VolumeIncrement", 2);
+	LoginKeyS.key = (DWORD)ini->ReadInteger(L"GENERAL", L"LoginHotkey", 0);
+	edtLoginKey->Text = getKeyString(LoginKeyS.key);
+
+	LoginWait = (DWORD)ini->ReadInteger(L"GENERAL", L"LoginWait", 9000);
+	PinKey[0] = (DWORD)ini->ReadInteger(L"GENERAL", L"PinKey0", 97); // numpad 1234
+	PinKey[1] = (DWORD)ini->ReadInteger(L"GENERAL", L"PinKey1", 98);
+	PinKey[2] = (DWORD)ini->ReadInteger(L"GENERAL", L"PinKey2", 99);
+	PinKey[3] = (DWORD)ini->ReadInteger(L"GENERAL", L"PinKey3", 100);
 
 	if (1 == ini->ReadInteger(L"GENERAL", L"VoiceEnglish", 1))
 		rbVoiceEnglish->Checked = true;
@@ -715,14 +946,21 @@ void TFormPfreepanic::Save()
 {
 	TIniFile *ini = new TIniFile(ChangeFileExt(Application->ExeName, ".ini"));
 
-	ini->WriteInteger(L"GENERAL", L"Hotkey", (int)Key);
-	ini->WriteInteger(L"GENERAL", L"TerminateHotkey", (int)TermKey);
-	ini->WriteInteger(L"GENERAL", L"ScreenshotHotkey", (int)ScreenshotKey);
+	ini->WriteInteger(L"GENERAL", L"Hotkey", (int)KeyS.key);
+	ini->WriteInteger(L"GENERAL", L"TerminateHotkey", (int)TermKeyS.key);
+	ini->WriteInteger(L"GENERAL", L"ScreenshotHotkey", (int)ScreenshotKeyS.key);
 
-	ini->WriteInteger(L"GENERAL", L"VolumeUpHotkey", (int)VolumeUpKey);
-	ini->WriteInteger(L"GENERAL", L"VolumeDownHotkey", (int)VolumeDownKey);
-	ini->WriteInteger(L"GENERAL", L"ToggleMuteHotkey", (int)ToggleMuteKey);
+	ini->WriteInteger(L"GENERAL", L"VolumeUpHotkey", (int)VolumeUpKeyS.key);
+	ini->WriteInteger(L"GENERAL", L"VolumeDownHotkey", (int)VolumeDownKeyS.key);
+	ini->WriteInteger(L"GENERAL", L"ToggleMuteHotkey", (int)ToggleMuteKeyS.key);
 	ini->WriteInteger(L"GENERAL", L"VolumeIncrement", VolumeIncrement);
+	ini->WriteInteger(L"GENERAL", L"LoginHotkey", (int)LoginKeyS.key);
+
+	ini->WriteInteger(L"GENERAL", L"LoginWait", (int)LoginWait);
+	ini->WriteInteger(L"GENERAL", L"PinKey0", (int)PinKey[0]);
+	ini->WriteInteger(L"GENERAL", L"PinKey1", (int)PinKey[1]);
+	ini->WriteInteger(L"GENERAL", L"PinKey2", (int)PinKey[2]);
+	ini->WriteInteger(L"GENERAL", L"PinKey3", (int)PinKey[3]);
 
 	ini->WriteInteger(L"GENERAL", L"VoiceEnglish", rbVoiceEnglish->Checked?1:0);
 	ini->WriteInteger(L"GENERAL", L"VoiceEnabled", chkVoiceEnabled->Checked?1:0);
@@ -737,108 +975,139 @@ void __fastcall TFormPfreepanic::edtKeyEnter(TObject *Sender)
 {
 	edtKey->Tag = 1;
 	edtKey->Text = L"Press single key";
+	Hook();
 }
 void __fastcall TFormPfreepanic::edtKeyExit(TObject *Sender)
 {
 	edtKey->Tag = 0;
-	edtKey->Text = IntToStr((int)Key);
+	edtKey->Text = getKeyString(KeyS.key);
+	Unhook();
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormPfreepanic::edtTermKeyEnter(TObject *Sender)
 {
 	edtTermKey->Tag = 1;
 	edtTermKey->Text = L"Press single key";
+	Hook();
 }
 void __fastcall TFormPfreepanic::edtTermKeyExit(TObject *Sender)
 {
 	edtTermKey->Tag = 0;
-	edtTermKey->Text = IntToStr((int)TermKey);
+	edtTermKey->Text = getKeyString(TermKeyS.key);
+	Unhook();
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormPfreepanic::edtScreenshotKeyEnter(TObject *Sender)
 {
 	edtScreenshotKey->Tag = 1;
 	edtScreenshotKey->Text = L"Press single key";
+	Hook();
 }
 void __fastcall TFormPfreepanic::edtScreenshotKeyExit(TObject *Sender)
 {
 	edtScreenshotKey->Tag = 0;
-	edtScreenshotKey->Text = IntToStr((int)ScreenshotKey);
+	edtScreenshotKey->Text = getKeyString(ScreenshotKeyS.key);
+	Unhook();
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormPfreepanic::edtVolumeUpKeyEnter(TObject *Sender)
 {
 	edtVolumeUpKey->Tag = 1;
 	edtVolumeUpKey->Text = L"Press single key";
+	Hook();
 }
 void __fastcall TFormPfreepanic::edtVolumeUpKeyExit(TObject *Sender)
 {
 	edtVolumeUpKey->Tag = 0;
-	edtVolumeUpKey->Text = IntToStr((int)VolumeUpKey);
+	edtVolumeUpKey->Text = getKeyString(VolumeUpKeyS.key);
+	Unhook();
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormPfreepanic::edtVolumeDownKeyEnter(TObject *Sender)
 {
 	edtVolumeDownKey->Tag = 1;
 	edtVolumeDownKey->Text = L"Press single key";
+	Hook();
 }
 void __fastcall TFormPfreepanic::edtVolumeDownKeyExit(TObject *Sender)
 {
 	edtVolumeDownKey->Tag = 0;
-	edtVolumeDownKey->Text = IntToStr((int)VolumeDownKey);
+	edtVolumeDownKey->Text = getKeyString(VolumeDownKeyS.key);
+	Unhook();
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormPfreepanic::edtToggleMuteKeyEnter(TObject *Sender)
 {
 	edtToggleMuteKey->Tag = 1;
 	edtToggleMuteKey->Text = L"Press single key";
+	Hook();
 }
 void __fastcall TFormPfreepanic::edtToggleMuteKeyExit(TObject *Sender)
 {
 	edtToggleMuteKey->Tag = 0;
-	edtToggleMuteKey->Text = IntToStr((int)ToggleMuteKey);
+	edtToggleMuteKey->Text = getKeyString(ToggleMuteKeyS.key);
+	Unhook();
 }
-
+//---------------------------------------------------------------------------
+void __fastcall TFormPfreepanic::edtLoginKeyEnter(TObject *Sender)
+{
+	edtLoginKey->Tag = 1;
+	edtLoginKey->Text = L"Press single key";
+	Hook();
+}
+void __fastcall TFormPfreepanic::edtLoginKeyExit(TObject *Sender)
+{
+	edtLoginKey->Tag = 0;
+	edtLoginKey->Text = getKeyString(LoginKeyS.key);
+	Unhook();
+}
 //---------------------------------------------------------------------------
 void __fastcall TFormPfreepanic::btnKeyDisableClick(TObject *Sender)
 {
-	Key = 0;
-	edtKey->Text = L"0";
+	KeyS.key = 0;
+	edtKey->Text = getKeyString(0);
 	Save();
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormPfreepanic::btnTermKeyDisableClick(TObject *Sender)
 {
-	TermKey = 0;
-	edtTermKey->Text = L"0";
+	TermKeyS.key = 0;
+	edtTermKey->Text = getKeyString(0);
 	Save();
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormPfreepanic::btnScreenshotKeyDisableClick(TObject *Sender)
 {
-	ScreenshotKey = 0;
-	edtScreenshotKey->Text = L"0";
+	ScreenshotKeyS.key = 0;
+	edtScreenshotKey->Text = getKeyString(0);
 	Save();
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormPfreepanic::btnVolumeUpKeyDisableClick(TObject *Sender)
 {
-	VolumeUpKey = 0;
-	edtVolumeUpKey->Text = L"0";
+	VolumeUpKeyS.key = 0;
+	edtVolumeUpKey->Text = getKeyString(0);
 	Save();
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormPfreepanic::btnVolumeDownKeyDisableClick(TObject *Sender)
 {
-	VolumeDownKey = 0;
-	edtVolumeDownKey->Text = L"0";
+	VolumeDownKeyS.key = 0;
+	edtVolumeDownKey->Text = getKeyString(0);
 	Save();
 }
 //---------------------------------------------------------------------------
 void __fastcall TFormPfreepanic::btnToggleMuteKeyDisableClick(TObject *Sender)
 {
-	ToggleMuteKey = 0;
-	edtToggleMuteKey->Text = L"0";
+	ToggleMuteKeyS.key = 0;
+	edtToggleMuteKey->Text = getKeyString(0);
+	Save();
+}
+//---------------------------------------------------------------------------
+void __fastcall TFormPfreepanic::btnLoginKeyDisableClick(TObject *Sender)
+{
+	LoginKeyS.key = 0;
+	edtLoginKey->Text = getKeyString(0);
 	Save();
 }
 
@@ -863,6 +1132,7 @@ void __fastcall TFormPfreepanic::btnInfoClick(TObject *Sender)
 		"\tSOUND VOLTEX III GRAVITY WARS Season 2 (2016121200)\n"
 #endif
 		"\nTerminate game is supported on:\n"
+		"\tSOUND VOLTEX EXCEED GEAR\n"
 		"\tSOUND VOLTEX VIVID WAVE\n"
 		"\tSOUND VOLTEX IV HEAVENLY HAVEN\n"
 		"\tSOUND VOLTEX III GRAVITY WARS\n"
@@ -930,14 +1200,146 @@ void __fastcall TFormPfreepanic::btnSSNdisableClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TFormPfreepanic::WndProc(TMessage& Message)
 {
-	if (Message.Msg == WM_APP+1)
-	{
-		Close();
+//	LPARAM lParam = Message.LParam;
+	switch (Message.Msg) {
+		case WM_APP+1: // Close running instance instance by command line parameter
+			Close();
+			break;
+		default:
+			TForm::WndProc(Message);
 	}
-	else
-	{
-		TForm::WndProc(Message);
+}
+
+//---------------------------------------------------------------------------
+void TFormPfreepanic::Login()
+{
+	KeyPress(VK_ADD, LoginWait); // scan card (num+)
+	KeyPress(PinKey[0], 50); // input pin
+	KeyPress(PinKey[1], 50);
+	KeyPress(PinKey[2], 50);
+	KeyPress(PinKey[3], 0);
+}
+//---------------------------------------------------------------------------
+void TFormPfreepanic::KeyPress(BYTE key, DWORD waitms)
+{
+	keybd_event( key, 0, KEYEVENTF_EXTENDEDKEY, 0 );
+	Sleep(100);
+	keybd_event( key, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 );
+	if (waitms) Sleep(waitms);
+}
+//---------------------------------------------------------------------------
+bool IsKeyPressed(KeyStruct &state)
+{
+	SHORT down = GetAsyncKeyState(state.key) & 0x8000;
+	FILETIME time;
+	ULARGE_INTEGER itime;
+	if (down) { // is down
+		if (!state.wasDown) {
+			state.wasDown = true;
+			// save time
+			GetSystemTimeAsFileTime(&time);
+			itime.LowPart = time.dwLowDateTime;
+			itime.HighPart = time.dwHighDateTime;
+			state.lastTime = itime.QuadPart;
+			// PRESS
+			return true;
+		} else {
+			GetSystemTimeAsFileTime(&time);
+			itime.LowPart = time.dwLowDateTime;
+			itime.HighPart = time.dwHighDateTime;
+			__int64 elapsed = itime.QuadPart - state.lastTime;
+
+			if (elapsed >= (state.firstRepeat? KeyStruct::Timeout0 : KeyStruct::Timeout1)) {
+				state.lastTime = elapsed;
+				state.wasDown = false;
+				if (state.firstRepeat) state.firstRepeat = false;
+			}
+		}
+	} else { // is up
+		if (state.wasDown) state.wasDown = false;
+		if (!state.firstRepeat) state.firstRepeat = true;
 	}
+
+	return false;
+}
+
+//---------------------------------------------------------------------------
+void __fastcall TFormPfreepanic::tmrKbdPollTimer(TObject *Sender)
+{
+	bool volUp = false;
+	if (IsKeyPressed(KeyS) && !Working) // Toggle PFree
+	{
+		Working = true;
+		Memo1->SetFocus();
+		Toggle();
+		Working = false;
+	} else
+	if (IsKeyPressed(TermKeyS) && !Terminating) // Terminate Game
+	{
+		Terminating = true;
+		Memo1->SetFocus();
+		Terminate();
+		Terminating = false;
+	} else
+	if (IsKeyPressed(ScreenshotKeyS)) // Take Screenshot
+	{
+		Memo1->SetFocus();
+		if (edtSSNpath->Text.Length())
+			pOSD->SendMessage(edtSSNpath->Text, 1);
+	} else
+	if (((IsKeyPressed(VolumeUpKeyS) && (volUp = true)) ||
+		IsKeyPressed(VolumeDownKeyS)) && !Voluming) // Volume Up/Down
+	{
+		Voluming = true;
+		Memo1->SetFocus();
+		try {
+			double volume = ChangeVolume(volUp? 0.01*VolumeIncrement: -(0.01*VolumeIncrement), TRUE);
+			if (chkOSDEnabled->Checked) {
+				BOOL muted = ChangeMute(FALSE, FALSE, TRUE);
+				UnicodeString msg;
+				msg.sprintf(L"Volume: %d %%", (int)ceil(volume*100));
+				if (muted) msg += L" (muted)";
+				pOSD->SendMessage(msg, udOSDDuration->Position);
+			}
+		} catch (Exception &e) {
+			Error(e.Message);
+		}
+		Voluming = false;
+	} else
+	if (IsKeyPressed(ToggleMuteKeyS)) // Toggle Mute
+	{
+		Memo1->SetFocus();
+		try {
+			BOOL muted = ChangeMute(FALSE, TRUE);
+			if (chkOSDEnabled->Checked)
+				pOSD->SendMessage(muted? L"Muted": L"Unmuted", udOSDDuration->Position);
+		} catch (Exception &e) {
+			Error(e.Message);
+		}
+	} else
+	if (IsKeyPressed(LoginKeyS)) // Auto login
+	{
+		Memo1->SetFocus();
+		Login();
+	}
+}
+
+//---------------------------------------------------------------------------
+void TFormPfreepanic::Hook()
+{
+	tmrKbdPoll->Enabled = false;
+	if (!hHook) {
+		hHook = SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)KeyboardProc,
+			GetModuleHandle(NULL), 0);
+	}
+}
+void TFormPfreepanic::Unhook(bool cont)
+{
+	if (hHook) {
+		UnhookWindowsHookEx(hHook);
+		hHook = NULL;
+	}
+	tmrKbdPoll->Enabled = cont;
 }
 
 //---------------------------------------------------------------------------
