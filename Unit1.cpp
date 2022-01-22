@@ -90,7 +90,11 @@ KeyStruct KeyS,
 	LoginKeyS;
 int VolumeIncrement = 5;
 DWORD LoginWait = 0; // time to wait until input pin screen
+DWORD LoginWait1 = 0; // time to wait until profile screen (press start)
+DWORD LoginWait2 = 0; // time to wait until blah-blah confirm screen (press start)
 DWORD PinKey[4] = {0}; // auto login pin
+DWORD StartKey = 0; // start key (bind same key as Naive in spice)
+int LoginOSD = 0; // show login keys OSD, or not
 
 UnicodeString get_key_string(DWORD key)
 {
@@ -924,10 +928,14 @@ void TFormPfreepanic::Load()
 	edtLoginKey->Text = getKeyString(LoginKeyS.key);
 
 	LoginWait = (DWORD)ini->ReadInteger(L"GENERAL", L"LoginWait", 9000);
+	LoginWait1 = (DWORD)ini->ReadInteger(L"GENERAL", L"LoginWait1", 5000); // 0-disable
+	LoginWait2 = (DWORD)ini->ReadInteger(L"GENERAL", L"LoginWait2", 2500); // 0-disable
 	PinKey[0] = (DWORD)ini->ReadInteger(L"GENERAL", L"PinKey0", 97); // numpad 1234
 	PinKey[1] = (DWORD)ini->ReadInteger(L"GENERAL", L"PinKey1", 98);
 	PinKey[2] = (DWORD)ini->ReadInteger(L"GENERAL", L"PinKey2", 99);
 	PinKey[3] = (DWORD)ini->ReadInteger(L"GENERAL", L"PinKey3", 100);
+	StartKey = (DWORD)ini->ReadInteger(L"GENERAL", L"StartKey", 49); // '1', 0-disable
+	LoginOSD = ini->ReadInteger(L"GENERAL", L"LoginOSD", 1); // 1-enable, 0-disable
 
 	if (1 == ini->ReadInteger(L"GENERAL", L"VoiceEnglish", 1))
 		rbVoiceEnglish->Checked = true;
@@ -957,10 +965,14 @@ void TFormPfreepanic::Save()
 	ini->WriteInteger(L"GENERAL", L"LoginHotkey", (int)LoginKeyS.key);
 
 	ini->WriteInteger(L"GENERAL", L"LoginWait", (int)LoginWait);
+	ini->WriteInteger(L"GENERAL", L"LoginWait1", (int)LoginWait1);
+	ini->WriteInteger(L"GENERAL", L"LoginWait2", (int)LoginWait2);
 	ini->WriteInteger(L"GENERAL", L"PinKey0", (int)PinKey[0]);
 	ini->WriteInteger(L"GENERAL", L"PinKey1", (int)PinKey[1]);
 	ini->WriteInteger(L"GENERAL", L"PinKey2", (int)PinKey[2]);
 	ini->WriteInteger(L"GENERAL", L"PinKey3", (int)PinKey[3]);
+	ini->WriteInteger(L"GENERAL", L"StartKey", (int)StartKey);
+	ini->WriteInteger(L"GENERAL", L"LoginOSD", LoginOSD);
 
 	ini->WriteInteger(L"GENERAL", L"VoiceEnglish", rbVoiceEnglish->Checked?1:0);
 	ini->WriteInteger(L"GENERAL", L"VoiceEnabled", chkVoiceEnabled->Checked?1:0);
@@ -1213,11 +1225,24 @@ void __fastcall TFormPfreepanic::WndProc(TMessage& Message)
 //---------------------------------------------------------------------------
 void TFormPfreepanic::Login()
 {
+	if (LoginOSD && chkOSDEnabled->Checked) pOSD->SendMessage(get_key_string(VK_ADD), 40);
 	KeyPress(VK_ADD, LoginWait); // scan card (num+)
+	if (LoginOSD && chkOSDEnabled->Checked) pOSD->SendMessage(get_key_string(PinKey[0]), 40);
 	KeyPress(PinKey[0], 50); // input pin
+	if (LoginOSD && chkOSDEnabled->Checked) pOSD->SendMessage(get_key_string(PinKey[1]), 40);
 	KeyPress(PinKey[1], 50);
+	if (LoginOSD && chkOSDEnabled->Checked) pOSD->SendMessage(get_key_string(PinKey[2]), 40);
 	KeyPress(PinKey[2], 50);
-	KeyPress(PinKey[3], 0);
+	if (LoginOSD && chkOSDEnabled->Checked) pOSD->SendMessage(get_key_string(PinKey[3]), 40);
+	KeyPress(PinKey[3], LoginWait1);
+	if (LoginWait1) {
+		if (LoginOSD && chkOSDEnabled->Checked) pOSD->SendMessage(get_key_string(StartKey), 40);
+		KeyPress(StartKey, LoginWait2);
+	}
+	if (LoginWait2) {
+		if (LoginOSD && chkOSDEnabled->Checked) pOSD->SendMessage(get_key_string(StartKey), 40);
+		KeyPress(StartKey, 0);
+	}
 }
 //---------------------------------------------------------------------------
 void TFormPfreepanic::KeyPress(BYTE key, DWORD waitms)
